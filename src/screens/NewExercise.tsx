@@ -13,42 +13,86 @@ import {URL_NGROK} from '@env';
 import {UserContext} from '../context/UserContext';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/types';
+import {ROUTES} from '../navigation/routes';
+import {useAppNavigation} from '../hooks/useAppNavigation';
 
 type NewExerciseRouteProp = RouteProp<RootStackParamList, 'NewExercise'>;
 
 const NewExercise = () => {
   const {userInfo} = useContext(UserContext);
-  const route = useRoute<NewExerciseRouteProp>();
-  const {exerciseId} = route.params;
+  const routeP = useRoute<NewExerciseRouteProp>();
+  const {exerciseId} = routeP.params;
 
   const userId = userInfo.id;
-  const [user, setUser] = useState<InUser | null>();
+  const [, setUser] = useState<InUser | null>();
   const [exercise, setExercise] = useState<InExercise | null>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const navigation = useAppNavigation();
+
+  const handleNavigate = (route: keyof RootStackParamList, params?: any) => {
+    navigation.navigate(route, params);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
-        const data = await fetch(`${URL_NGROK}/api/user/${userId}`);
-        const res: InUser = await data.json();
-        setUser(res);
+        // Fetch user data
+        const userResponse = await fetch(`${URL_NGROK}/api/user/${userId}`);
+        if (!userResponse.ok) {
+          console.error(
+            'Error en respuesta de usuario:',
+            userResponse.status,
+            userResponse.statusText,
+          );
+          return;
+        }
 
-        const dataExercise = await fetch(
+        const userText = await userResponse.text();
+
+        try {
+          const userData: InUser = JSON.parse(userText);
+          setUser(userData);
+        } catch (parseError) {
+          console.error('Error parseando datos de usuario:', parseError);
+          console.error('Contenido recibido:', userText);
+        }
+
+        // Fetch exercise data
+        const exerciseResponse = await fetch(
           `${URL_NGROK}/api/user/training/${userId}/exercise/${exerciseId}`,
         );
-        const resExercise: InExercise = await dataExercise.json();
-        setExercise(resExercise);
-        console.log(resExercise);
+        if (!exerciseResponse.ok) {
+          console.error(
+            'Error en respuesta de ejercicio:',
+            exerciseResponse.status,
+            exerciseResponse.statusText,
+          );
+          return;
+        }
+
+        const exerciseText = await exerciseResponse.text();
+
+        try {
+          const exerciseData: InExercise = JSON.parse(exerciseText);
+          setExercise(exerciseData);
+        } catch (parseError) {
+          console.error('Error parseando datos de ejercicio:', parseError);
+          console.error('Contenido recibido:', exerciseText);
+        }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error en la petición:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [userId, exerciseId]);
+  }, [exerciseId, userId]);
 
   const [weight, setWeight] = useState('');
   const [report, setReport] = useState({
-    _id: '',
     series: 0,
     interval: 0,
     weight: 0,
@@ -60,7 +104,56 @@ const NewExercise = () => {
     day: new Date(),
   });
 
+  const handleSubmitAndNextExercise = async () => {
+    await handleSubmitExercise();
+    await handleNextExercise();
+  };
+
+  const handleSubmitExercise = async () => {
+    setIsLoading(true);
+    try {
+      console.log(
+        'userId: ',
+        userId,
+        'exerciseId:',
+        exerciseId,
+        'report: ',
+        report,
+      );
+      const updatedReport = {
+        ...report,
+        day: new Date(), // Actualiza el campo 'day' con la fecha y hora actual
+      };
+
+      const response = await fetch(`${URL_NGROK}/api/user/training/report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          exerciseId: exerciseId,
+          report: updatedReport,
+        }),
+      });
+      if (!response.ok) {
+        console.error(
+          'Error en respuesta de envío de ejercicio:',
+          response.status,
+          response.statusText,
+        );
+        return;
+      }
+      console.log('Ejercicio enviado correctamente');
+    } catch (error) {
+      console.error('Error enviando datos del ejercicio:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleNextExercise = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch(
         `${URL_NGROK}/api/user/training/next-exercise`,
@@ -75,10 +168,32 @@ const NewExercise = () => {
           }),
         },
       );
-      const resExercise: InExercise = await response.json();
-      setExercise(resExercise);
+      if (!response.ok) {
+        console.error(
+          'Error en respuesta de ejercicio:',
+          response.status,
+          response.statusText,
+        );
+        return;
+      }
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const resExercise: InExercise = await response.json();
+        // Handle resExercise here
+        if (resExercise?._id) {
+          console.log('navego');
+
+          handleNavigate(ROUTES.NEW_EXERCISE, {
+            exerciseId: resExercise._id,
+          });
+        }
+      } else {
+        console.error('Respuesta no es JSON');
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -169,8 +284,10 @@ const NewExercise = () => {
       </View>
 
       <TouchableOpacity
-        style={styles.reportButton}
-        onPress={handleNextExercise}>
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={[styles.reportButton, isLoading && {backgroundColor: '#ccc'}]}
+        onPress={handleSubmitAndNextExercise}
+        disabled={isLoading}>
         <Text style={styles.reportText}>Siguiente ejercicio</Text>
       </TouchableOpacity>
     </ScrollView>

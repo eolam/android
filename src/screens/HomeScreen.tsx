@@ -37,7 +37,9 @@ const HomeScreen = ({}) => {
         <Text style={styles.buttonText}>My profile</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => handleNavigate(ROUTES.TRAINING_HISTORY)}>
         <Text style={styles.buttonText}>Historial de entrenamientos</Text>
       </TouchableOpacity>
 

@@ -43,16 +43,34 @@ const LoginScreen = () => {
         },
       });
 
-      const user = await response.json();
-
-      if (user._id) {
-        setUserInfo(prevState => ({
-          ...prevState,
-          id: user._id,
-        }));
-
-        return true;
+      // Primero verificamos si la respuesta es exitosa
+      if (!response.ok) {
+        console.error(
+          'Error en la respuesta:',
+          response.status,
+          response.statusText,
+        );
+        return false;
       }
+
+      // Intentamos obtener el texto de la respuesta primero
+      const textResponse = await response.text();
+      console.log('Respuesta del servidor:', textResponse);
+
+      try {
+        const user = JSON.parse(textResponse);
+        if (user._id) {
+          setUserInfo(prevState => ({
+            ...prevState,
+            id: user._id,
+          }));
+          return true;
+        }
+      } catch (parseError) {
+        console.error('Error parseando JSON:', parseError);
+        console.error('Contenido recibido:', textResponse);
+      }
+
       return false;
     } catch (error) {
       console.error('Error checking email:', error);
@@ -65,8 +83,8 @@ const LoginScreen = () => {
       setLoading(true);
       await GoogleSignin.hasPlayServices();
 
-      await GoogleSignin.signOut();
-      await auth().signOut();
+      //   await GoogleSignin.signOut();
+      //   await auth().signOut();
 
       const googleUser = await GoogleSignin.signIn();
 

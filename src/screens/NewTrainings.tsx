@@ -22,6 +22,8 @@ import {ROUTES} from '../navigation/routes';
 // };
 
 const NewTrainings = () => {
+  console.log('entro');
+
   const {userInfo} = useContext(UserContext);
 
   const navigation = useAppNavigation();
@@ -54,7 +56,7 @@ const NewTrainings = () => {
     setExpandedDay(expandedDay === itemId ? null : itemId);
   };
 
-  const renderWeekItem = ({item, index}: {item: InDay; index: string}) => (
+  const renderWeekItem = ({item, index}: {item: InDay; index: number}) => (
     <View>
       <TouchableOpacity
         style={styles.weekButton}
@@ -62,7 +64,7 @@ const NewTrainings = () => {
         <Text style={styles.weekButtonText}>
           {expandedDay === item._id ? 'v' : '>'}
         </Text>
-        <Text style={styles.weekButtonText}> Dia {index + 1}</Text>
+        <Text style={styles.weekButtonText}> Dia {index}</Text>
       </TouchableOpacity>
       {expandedDay === item._id && item.exercises.length > 0 && (
         <View style={styles.reportsContainer}>
@@ -91,7 +93,7 @@ const NewTrainings = () => {
         <FlatList
           data={days}
           renderItem={({item, index}: ListRenderItemInfo<InDay>) =>
-            renderWeekItem({item, index: index.toString()})
+            renderWeekItem({item, index: index})
           }
           keyExtractor={item => item._id}
         />

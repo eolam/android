@@ -1,25 +1,32 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, FlatList, StyleSheet} from 'react-native';
-import {InExercise, InDay} from '../../interfaces/user.interfaces';
+import {InExercise, InDay} from '../interfaces/user.interfaces';
 import {URL_NGROK} from '@env';
 import {useContext} from 'react';
-import {UserContext} from '../../context/UserContext';
+import {UserContext} from '../context/UserContext';
+import {useRoute, RouteProp} from '@react-navigation/native';
+import {RootStackParamList} from '../navigation/types';
 
-const ExerciseList: React.FC<{exercises: InExercise[]}> = ({exercises}) => {
+type NewExerciseRouteProp = RouteProp<RootStackParamList, 'ExerciseList'>;
+
+const ExerciseList = () => {
   const {userInfo} = useContext(UserContext);
   const [day, setDay] = useState<InDay | null>();
+
+  const route = useRoute<NewExerciseRouteProp>();
+  const {dayId} = route.params;
 
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetch(
-        `${URL_NGROK}/api/user/${userInfo._id}/day/${id}`,
+        `${URL_NGROK}/api/user/${userInfo.id}/day/${dayId}`,
       );
-      const day: InDay = await data.json();
+      const dayData: InDay = await data.json();
 
-      setDay(day);
+      setDay(dayData);
     };
     fetchData();
-  }, []);
+  }, [dayId, userInfo.id]);
 
   const renderItem = ({item}: {item: InExercise}) => (
     <View style={styles.exerciseItem}>
