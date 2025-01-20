@@ -7,14 +7,14 @@ import {UserContext} from '../context/UserContext';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/types';
 
-type NewExerciseRouteProp = RouteProp<RootStackParamList, 'ExerciseList'>;
+type HistoryExerciseRouteProp = RouteProp<RootStackParamList, 'ExerciseList'>;
 
 const ExerciseList = () => {
   const {userInfo} = useContext(UserContext);
   const [day, setDay] = useState<InDay | null>(null);
 
-  const route = useRoute<NewExerciseRouteProp>();
-  const {dayId} = route.params;
+  const route = useRoute<HistoryExerciseRouteProp>();
+  const {dayId, weekNumber, dayNumber} = route.params;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,16 +31,24 @@ const ExerciseList = () => {
   const renderItem = ({item}: {item: InExercise}) => (
     <View style={styles.row}>
       <Text style={styles.cell}>{item.name_exercise}</Text>
-      <Text style={styles.cell}>{item.series}</Text>
-      <Text style={styles.cell}>{item.reps || '-'}</Text>
-      <Text style={styles.cell}>{item.kg || '-'}</Text>
-      <Text style={styles.cell}>{item.rpe || '-'}</Text>
+      <Text style={styles.cell}>{item.report.series}</Text>
+      <Text style={styles.cell}>{item.report.repetitions || '-'}</Text>
+      <Text style={styles.cell}>
+        {item.report.single_weight
+          ? item.report.single_weight
+          : item.report.left_weight
+          ? item.report.left_weight + ' / ' + item.report.right_weight
+          : '-'}
+      </Text>
+      <Text style={styles.cell}>{item.report.rpe || '-'}</Text>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Semana 3 - Día 4</Text>
+      <Text style={styles.title}>
+        Semana {weekNumber} - Día {dayNumber}
+      </Text>
       <View style={styles.table}>
         <View style={styles.header}>
           <Text style={styles.headerCell}>Nombre del ejercicio</Text>

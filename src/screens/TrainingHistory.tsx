@@ -52,6 +52,8 @@ const TrainingHistory = () => {
               onPress={() =>
                 handleNavigate(ROUTES.EXERCISE_LIST, {
                   dayId: day._id,
+                  weekNumber: item.week_number,
+                  dayNumber: index + 1,
                 })
               }>
               <View style={styles.reportItem}>
