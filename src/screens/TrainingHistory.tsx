@@ -8,8 +8,6 @@ import {useAppNavigation} from '../hooks/useAppNavigation';
 import {ROUTES} from '../navigation/routes';
 
 const TrainingHistory = () => {
-  console.log('training history');
-
   const {userInfo} = useContext(UserContext);
   const {id} = userInfo;
   const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
@@ -83,7 +81,7 @@ const TrainingHistory = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#13172a',
+    backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 200,

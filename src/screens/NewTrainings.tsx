@@ -22,8 +22,6 @@ import {ROUTES} from '../navigation/routes';
 // };
 
 const NewTrainings = () => {
-  console.log('entro');
-
   const {userInfo} = useContext(UserContext);
 
   const navigation = useAppNavigation();
@@ -37,6 +35,8 @@ const NewTrainings = () => {
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('entro');
+
     const fetchData = async () => {
       const data = await fetch(`${URL_NGROK}/api/user/${id}`);
       const res: InUser = await data.json();
@@ -105,7 +105,7 @@ const NewTrainings = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#13172a',
+    backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
   },

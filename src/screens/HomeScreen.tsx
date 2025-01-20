@@ -7,9 +7,13 @@ import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {ROUTES} from '../navigation/routes';
 import {RootStackParamList} from '../navigation/types';
+import isActive from '../services/isActive';
+import {URL_NGROK} from '@env';
+import {InUser} from '../interfaces/user.interfaces';
+import {UserContext} from '../context/UserContext';
 
 const HomeScreen = ({}) => {
-  //   const {userInfo} = useContext(UserContext);
+  const {userInfo} = useContext(UserContext);
 
   const navigation = useAppNavigation();
 
@@ -17,39 +21,57 @@ const HomeScreen = ({}) => {
     navigation.navigate(route);
   };
 
-  //   const [user, setUser] = useState<InUser | null>(null);
+  const [, setUser] = useState<InUser | null>(null);
+  const [isActiveRes, setIsActiveRes] = useState<boolean>();
+  const [msgOfDay, setMsgOfDay] = useState<string>('');
 
-  //   useEffect(() => {
-  //     const fetchUser = async () => {
-  //       const res = await fetch(`${URL_NGROK}/api/user/email/${userInfo.email}`);
-  //       const userResponse: InUser | null = await res.json();
+  useEffect(() => {
+    const fetchUser = async () => {
+      const res = await fetch(`${URL_NGROK}/api/user/email/${userInfo.email}`);
+      const userResponse: InUser | null = await res.json();
+      if (userResponse && userResponse._id) {
+        setUser(userResponse);
+        setIsActiveRes(await isActive(userResponse._id));
+      }
+    };
+    const messageOfDay = async () => {
+      const res = await fetch(`${URL_NGROK}/api/dailyMessage`);
+      const result = await res.json();
 
-  //       setUser(userResponse);
-  //     };
-  //     fetchUser();
-  //   }, []);
+      setMsgOfDay(result.message as string);
+    };
+
+    fetchUser();
+    messageOfDay();
+  }, [userInfo.email]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Mensaje del día para Mauro</Text>
+      <Text style={styles.header}>{msgOfDay}</Text>
 
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>My profile</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, !isActiveRes ? styles.buttonDisabled : null]}
+        disabled={!isActiveRes}
         onPress={() => handleNavigate(ROUTES.TRAINING_HISTORY)}>
         <Text style={styles.buttonText}>Historial de entrenamientos</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, !isActiveRes ? styles.buttonDisabled : null]}
+        disabled={!isActiveRes}
         onPress={() => handleNavigate(ROUTES.NEW_TRAININGS)}>
         <Text style={styles.buttonText}>Nuevos entrenamientos</Text>
       </TouchableOpacity>
 
-      <Text style={styles.footer}>Recuerda abonar antes del FECHA</Text>
+      {!isActiveRes && (
+        <Text style={styles.footer}>
+          Contactate con tu profe para regularizar tu situacion! Saludos
+        </Text>
+      )}
     </View>
   );
 };
@@ -57,7 +79,7 @@ const HomeScreen = ({}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#12152C', // Color de fondo oscuro
+    backgroundColor: '#0F172A', // Color de fondo oscuro
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -87,6 +109,9 @@ const styles = StyleSheet.create({
     marginTop: 30,
     fontSize: 14,
     textAlign: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#A9A9A9',
   },
 });
 

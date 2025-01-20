@@ -32,6 +32,7 @@ export interface InReport extends Document {
   left_weight?: number;
   right_weight?: number;
   single_weight?: number;
+  repetitions: number;
   interval: number | undefined;
   comment_user?: string;
   rpe: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | undefined;

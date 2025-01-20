@@ -39,7 +39,10 @@ const NewExercise = () => {
       setIsLoading(true);
       try {
         // Fetch user data
+
         const userResponse = await fetch(`${URL_NGROK}/api/user/${userId}`);
+        console.log(userResponse);
+
         if (!userResponse.ok) {
           console.error(
             'Error en respuesta de usuario:',
@@ -91,12 +94,11 @@ const NewExercise = () => {
     fetchData();
   }, [exerciseId, userId]);
 
-  const [weight, setWeight] = useState('');
   const [report, setReport] = useState({
     series: 0,
     interval: 0,
-    weight: 0,
-    repetitions: '0',
+    single_weight: 0,
+    repetitions: 0,
     left_weight: 0,
     right_weight: 0,
     comment_user: '',
@@ -155,6 +157,8 @@ const NewExercise = () => {
   const handleNextExercise = async () => {
     setIsLoading(true);
     try {
+      console.log('handleNextExercise in');
+
       const response = await fetch(
         `${URL_NGROK}/api/user/training/next-exercise`,
         {
@@ -164,10 +168,11 @@ const NewExercise = () => {
           },
           body: JSON.stringify({
             userId: userId,
-            exerceseId: exerciseId,
+            exerciseId: exerciseId,
           }),
         },
       );
+
       if (!response.ok) {
         console.error(
           'Error en respuesta de ejercicio:',
@@ -180,12 +185,24 @@ const NewExercise = () => {
       if (contentType && contentType.includes('application/json')) {
         const resExercise: InExercise = await response.json();
         // Handle resExercise here
-        if (resExercise?._id) {
-          console.log('navego');
 
+        if (resExercise?._id) {
+          setReport({
+            series: 0,
+            interval: 0,
+            single_weight: 0,
+            repetitions: 0,
+            left_weight: 0,
+            right_weight: 0,
+            comment_user: '',
+            rpe: 0,
+            day: new Date(),
+          });
           handleNavigate(ROUTES.NEW_EXERCISE, {
             exerciseId: resExercise._id,
           });
+        } else {
+          console.error(resExercise);
         }
       } else {
         console.error('Respuesta no es JSON');
@@ -253,14 +270,14 @@ const NewExercise = () => {
           <TextInput
             style={styles.input}
             placeholder="10kg"
-            value={weight}
-            onChangeText={setWeight}
+            value={report.single_weight.toString()}
+            onChangeText={text => setReport({...report, single_weight: +text})}
           />
           <TextInput
             style={styles.input}
             placeholder="Repeticiones..."
-            value={report.repetitions}
-            onChangeText={text => setReport({...report, repetitions: text})}
+            value={report.repetitions.toString()}
+            onChangeText={text => setReport({...report, repetitions: +text})}
           />
           <TextInput
             style={styles.input}
@@ -279,6 +296,12 @@ const NewExercise = () => {
             placeholder="RPE..."
             value={report.rpe.toString()}
             onChangeText={text => setReport({...report, rpe: +text})}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="RPE..."
+            value={report.series.toString()}
+            onChangeText={text => setReport({...report, series: +text})}
           />
         </View>
       </View>
@@ -375,7 +398,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     justifyContent: 'center',
-    backgroundColor: '#13172a',
+    backgroundColor: '#0F172A',
   },
 });
 

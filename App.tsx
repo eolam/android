@@ -9,6 +9,7 @@ import {RootStackParamList} from './src/navigation/types';
 import NewTrainings from './src/screens/NewTrainings';
 import NewExercise from './src/screens/NewExercise';
 import ExerciseList from './src/screens/ExerciseList';
+import NeedPay from './src/screens/NeedPay';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -27,6 +28,7 @@ function App(): JSX.Element {
           <Stack.Screen name="NewTrainings" component={NewTrainings} />
           <Stack.Screen name="NewExercise" component={NewExercise} />
           <Stack.Screen name="ExerciseList" component={ExerciseList} />
+          <Stack.Screen name="NeedPay" component={NeedPay} />
         </Stack.Navigator>
       </NavigationContainer>
     </UserContextProvider>

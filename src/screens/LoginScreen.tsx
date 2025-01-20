@@ -12,12 +12,18 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
-import {useNavigation} from '@react-navigation/native';
 import {UserContext} from '../context/UserContext';
 import {URL_NGROK} from '@env';
+import {ROUTES} from '../navigation/routes';
+import {RootStackParamList} from '../navigation/types';
+import {useAppNavigation} from '../hooks/useAppNavigation';
 
 const LoginScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useAppNavigation();
+
+  const handleNavigate = (route: keyof RootStackParamList) => {
+    navigation.navigate(route);
+  };
   const [loading, setLoading] = useState(false);
   const {userInfo, setUserInfo} = useContext(UserContext);
 
@@ -80,6 +86,7 @@ const LoginScreen = () => {
 
   const signInWithGoogle = async () => {
     try {
+      console.log('entro');
       setLoading(true);
       await GoogleSignin.hasPlayServices();
 
@@ -113,7 +120,7 @@ const LoginScreen = () => {
           );
 
           if (emailExists) {
-            navigation.navigate('Home' as never);
+            handleNavigate(ROUTES.HOME);
           } else {
             // Aquí puedes manejar el caso cuando el email no existe
             // Por ejemplo, mostrar un mensaje o navegar a una pantalla de registro
@@ -172,7 +179,7 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#0F172A',
     padding: 20,
     justifyContent: 'center',
   },
@@ -197,7 +204,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   googleButton: {
-    backgroundColor: '#4285F4',
+    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 8,
     flexDirection: 'row',
@@ -210,7 +217,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   buttonText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 16,
     fontWeight: '600',
   },
