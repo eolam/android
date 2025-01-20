@@ -7,6 +7,8 @@ export type RootStackParamList = {
   NeedPay: undefined;
   ExerciseList: {
     dayId: string;
+    weekNumber: string;
+    dayNumber: string;
   };
   NewExercise: {
     exerciseId: string;

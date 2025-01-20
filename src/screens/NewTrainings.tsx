@@ -64,7 +64,7 @@ const NewTrainings = () => {
         <Text style={styles.weekButtonText}>
           {expandedDay === item._id ? 'v' : '>'}
         </Text>
-        <Text style={styles.weekButtonText}> Dia {index}</Text>
+        <Text style={styles.weekButtonText}> Dia {index + 1}</Text>
       </TouchableOpacity>
       {expandedDay === item._id && item.exercises.length > 0 && (
         <View style={styles.reportsContainer}>
