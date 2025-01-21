@@ -1,5 +1,6 @@
 export const ROUTES = {
   LOGIN: 'Login',
+  REGISTER: 'Register',
   HOME: 'Home',
   TRAINING_HISTORY: 'TrainingHistory',
   PROFILE: 'Profile',

@@ -8,6 +8,7 @@ import {UserContextProvider} from './src/context/UserContext';
 import {RootStackParamList} from './src/navigation/types';
 import NewTrainings from './src/screens/NewTrainings';
 import NewExercise from './src/screens/NewExercise';
+import RegisterScreen from './src/screens/RegisterScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -22,6 +23,7 @@ function App(): JSX.Element {
           }}>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="TrainingHistory" component={TrainingHistory} />
           <Stack.Screen name="NewTrainings" component={NewTrainings} />
           <Stack.Screen name="NewExercise" component={NewExercise} />

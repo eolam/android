@@ -36,6 +36,7 @@ const NewTrainings = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('week', week);
       const data = await fetch(`${URL_NGROK}/api/user/${id}`);
       const res: InUser = await data.json();
 
@@ -66,16 +67,16 @@ const NewTrainings = () => {
       </TouchableOpacity>
       {expandedDay === item._id && item.exercises.length > 0 && (
         <View style={styles.reportsContainer}>
-          {item.exercises.map((exercise: InExercise, indexE: number) => (
+          {item.exercises.map((exercise: InExercise, index: number) => (
             <TouchableOpacity
-              key={indexE}
+              key={index}
               style={styles.reportItem}
               onPress={() =>
                 handleNavigate(ROUTES.NEW_EXERCISE, {
                   exerciseId: exercise._id,
                 })
               }>
-              <Text style={styles.reportText}>Ejercicio {indexE + 1}</Text>
+              <Text style={styles.reportText}>Ejercicio {index + 1}</Text>
               <Text style={styles.reportText}>{exercise.name_exercise}</Text>
             </TouchableOpacity>
           ))}

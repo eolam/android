@@ -1,15 +1,15 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
-// import {InUser} from '../interfaces/user.interfaces';
-// import {URL_NGROK} from '@env';
-// import {UserContext} from '../context/UserContext';
+import {InUser} from '../interfaces/user.interfaces';
+import {URL_NGROK} from '@env';
+import {UserContext} from '../context/UserContext';
 
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {ROUTES} from '../navigation/routes';
 import {RootStackParamList} from '../navigation/types';
 
 const HomeScreen = ({}) => {
-  //   const {userInfo} = useContext(UserContext);
+    const {userInfo} = useContext(UserContext);
 
   const navigation = useAppNavigation();
 
@@ -17,21 +17,21 @@ const HomeScreen = ({}) => {
     navigation.navigate(route);
   };
 
-  //   const [user, setUser] = useState<InUser | null>(null);
+    const [user, setUser] = useState<InUser | null>(null);
 
-  //   useEffect(() => {
-  //     const fetchUser = async () => {
-  //       const res = await fetch(`${URL_NGROK}/api/user/email/${userInfo.email}`);
-  //       const userResponse: InUser | null = await res.json();
+    useEffect(() => {
+      const fetchUser = async () => {
+        const res = await fetch(`${URL_NGROK}/api/user/email/${userInfo.email}`);
+        const userResponse: InUser | null = await res.json();
 
-  //       setUser(userResponse);
-  //     };
-  //     fetchUser();
-  //   }, []);
+        setUser(userResponse);
+      };
+      fetchUser();
+    }, [userInfo.email]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Mensaje del día para Mauro</Text>
+      <Text style={styles.header}>Mensaje del día para {user?.first_name}</Text>
 
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>My profile</Text>
