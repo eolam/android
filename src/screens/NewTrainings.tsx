@@ -35,6 +35,8 @@ const NewTrainings = () => {
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('entro');
+
     const fetchData = async () => {
       console.log('week', week);
       const data = await fetch(`${URL_NGROK}/api/user/${id}`);
@@ -55,7 +57,7 @@ const NewTrainings = () => {
     setExpandedDay(expandedDay === itemId ? null : itemId);
   };
 
-  const renderWeekItem = ({item, index}: {item: InDay; index: string}) => (
+  const renderWeekItem = ({item, index}: {item: InDay; index: number}) => (
     <View>
       <TouchableOpacity
         style={styles.weekButton}
@@ -92,7 +94,7 @@ const NewTrainings = () => {
         <FlatList
           data={days}
           renderItem={({item, index}: ListRenderItemInfo<InDay>) =>
-            renderWeekItem({item, index: index.toString()})
+            renderWeekItem({item, index: index})
           }
           keyExtractor={item => item._id}
         />
@@ -104,7 +106,7 @@ const NewTrainings = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#13172a',
+    backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
   },

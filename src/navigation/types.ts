@@ -5,9 +5,13 @@ export type RootStackParamList = {
   TrainingHistory: undefined;
   Profile: undefined;
   NewTrainings: undefined;
-  ExerciseList: undefined;
+  NeedPay: undefined;
+  ExerciseList: {
+    dayId: string;
+    weekNumber: string;
+    dayNumber: string;
+  };
   NewExercise: {
     exerciseId: string;
   };
-  // ... otros screens
 };

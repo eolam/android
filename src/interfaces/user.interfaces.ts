@@ -32,6 +32,7 @@ export interface InReport extends Document {
   left_weight?: number;
   right_weight?: number;
   single_weight?: number;
+  repetitions: number;
   interval: number | undefined;
   comment_user?: string;
   rpe: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | undefined;
@@ -103,4 +104,24 @@ export interface InExerciseForm {
 export interface InVideoOption {
   value: string; // Asumiendo que _id es un string
   label: string; // Asumiendo que name es un string
+}
+
+export interface InUserLocalStorage {
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null | undefined;
+  id: string | null | undefined;
+}
+
+export interface InProfileData {
+  email: string;
+  first_name: string;
+  last_name: string;
+  birthday: string;
+  gym_name: string;
+  day_of_payment: string;
+  goals: string;
+  last_training_day: string;
+  training_place: string;
+  number_trainning_week: string;
 }
