@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -6,138 +6,165 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
+  ImageBackground,
 } from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
-import {UserContext} from '../context/UserContext';
+// import {useNavigation} from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+// import {UserContext} from '../context/UserContext';
 import {URL_NGROK} from '@env';
-import {ROUTES} from '../navigation/routes';
-import {RootStackParamList} from '../navigation/types';
+// import {ROUTES} from '../navigation/routes';
+// import {RootStackParamList} from '../navigation/types';
 import {useAppNavigation} from '../hooks/useAppNavigation';
+import LinearGradient from 'react-native-linear-gradient';
 
 const LoginScreen = () => {
   const navigation = useAppNavigation();
 
-  const handleNavigate = (route: keyof RootStackParamList) => {
-    navigation.navigate(route);
-  };
+  //   const handleNavigate = (route: keyof RootStackParamList) => {
+  //     navigation.navigate(route);
+  //   };
   const [loading, setLoading] = useState(false);
-  const {userInfo, setUserInfo} = useContext(UserContext);
+  //   const [email, setEmail] = useState('');
+  //   const [password, setPassword] = useState('');
+  //   const {userInfo, setUserInfo} = useContext(UserContext);
 
   // Configurar Google Sign-In
   useEffect(() => {
     GoogleSignin.configure({
-      // Obtén este ID desde Google Cloud Console
       webClientId:
         '127777850629-f0vb31dn2qteb56apu3i0mfjno3ddql1.apps.googleusercontent.com',
     });
   }, []);
 
-  useEffect(() => {
-    console.log('Contexto actualizado:', userInfo);
-  }, [userInfo]);
-
-  const checkEmailInBackend = async (email: string) => {
+  const checkEmailInBackend = async (user_email: string | null | undefined) => {
     try {
-      const response = await fetch(`${URL_NGROK}/api/user/email/${email}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+      if (!user_email) {
+        return {
+          error: true,
+          message: 'Email no detectado',
+          email: null,
+          id: null,
+        };
+      }
+      console.log('le estoy pegando!', URL_NGROK);
+      const response = await fetch(
+        `${URL_NGROK}/api/user/email/${user_email}`,
+        {
+          method: 'GET',
+          headers: {'Content-Type': 'application/json'},
         },
-      });
+      );
 
-      // Primero verificamos si la respuesta es exitosa
       if (!response.ok) {
-        console.error(
-          'Error en la respuesta:',
-          response.status,
-          response.statusText,
-        );
-        return false;
-      }
-
-      // Intentamos obtener el texto de la respuesta primero
-      const textResponse = await response.text();
-      console.log('Respuesta del servidor:', textResponse);
-
-      try {
-        const user = JSON.parse(textResponse);
-        if (user._id) {
-          setUserInfo(prevState => ({
-            ...prevState,
-            id: user._id,
-          }));
-          return true;
+        if (response.status === 404) {
+          Alert.alert(
+            'Registro',
+            'El usuario aun no se ha registrado, por favor complete los siguientes campos',
+            [{text: 'Ok'}],
+          );
+          return {
+            error: true,
+            message:
+              'El usuario aun no se ha registrado, por favor complete los siguientes campos',
+            email: user_email,
+            id: null,
+          };
         }
-      } catch (parseError) {
-        console.error('Error parseando JSON:', parseError);
-        console.error('Contenido recibido:', textResponse);
+        Alert.alert(
+          'Error de conexión',
+          'Error en la comunicación con el servidor',
+          [{text: 'OK'}],
+        );
+        return {
+          error: true,
+          message: 'Error en la comunicación con el servidor',
+          email: null,
+          id: null,
+        };
+      }
+      const user = await response.json();
+      if (user._id) {
+        return {
+          error: false,
+          message: 'Usuario logeado exitosamente!',
+          email: user.email,
+          id: user._id,
+        };
       }
 
-      return false;
+      return {
+        error: true,
+        message: 'Unkown Error',
+        email: null,
+        id: null,
+      };
     } catch (error) {
-      console.error('Error checking email:', error);
-      return false;
+      Alert.alert('Error', 'No se pudo verificar el correo.', [{text: 'OK'}]);
+      return {
+        error: true,
+        message: 'No se pudo verificar el correo.',
+        email: null,
+        id: null,
+      };
     }
   };
 
   const signInWithGoogle = async () => {
     try {
-      console.log('entro');
       setLoading(true);
-      await GoogleSignin.hasPlayServices();
 
-      //   await GoogleSignin.signOut();
-      //   await auth().signOut();
+      await GoogleSignin.hasPlayServices();
+      await GoogleSignin.signOut();
 
       const googleUser = await GoogleSignin.signIn();
-
       if (googleUser.data?.idToken) {
         const googleCredential = auth.GoogleAuthProvider.credential(
-          googleUser.data?.idToken,
+          googleUser.data.idToken,
         );
         const userCredential = await auth().signInWithCredential(
           googleCredential,
         );
 
-        // Aquí puedes manejar la respuesta exitosa
-        await new Promise<void>(resolve => {
-          setUserInfo({
-            email: userCredential.user.email,
-            displayName: userCredential.user.displayName,
-            photoURL: userCredential.user.photoURL,
-            id: null,
-          });
-          resolve();
-        });
+        const user = userCredential.user;
 
-        if (userCredential.user.email) {
-          const emailExists = await checkEmailInBackend(
-            userCredential.user.email,
+        const emailExists = await checkEmailInBackend(user.email);
+        if (!emailExists.error) {
+          await AsyncStorage.setItem(
+            'userInfo',
+            JSON.stringify({
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              id: emailExists.id,
+            }),
           );
-
-          if (emailExists) {
-            handleNavigate(ROUTES.HOME);
-          } else {
-            // Aquí puedes manejar el caso cuando el email no existe
-            // Por ejemplo, mostrar un mensaje o navegar a una pantalla de registro
-            console.log('El email no está registrado en el sistema');
-            // navigation.navigate('Register' as never); // Si tienes una pantalla de registro
-          }
+          navigation.navigate('Home');
+          // handleNavigate(ROUTES.HOME);
+        } else {
+          await AsyncStorage.setItem(
+            'userInfo',
+            JSON.stringify({
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              id: null,
+            }),
+          );
+          navigation.navigate('Register');
+          // handleNavigate(ROUTES.REGISTER);
         }
       }
     } catch (error: any) {
       if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('Usuario canceló el login');
-      } else if (error?.code === statusCodes.IN_PROGRESS) {
-        console.log('Operación en progreso');
-      } else if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        console.log('Play Services no disponible');
+        Alert.alert('Login cancelado', 'Has cancelado el inicio de sesión.');
       } else {
-        console.log('Error:', error);
+        Alert.alert('Error', 'Hubo un problema al iniciar sesión con Google.');
       }
     } finally {
       setLoading(false);
@@ -146,32 +173,48 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('../assets/logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Bienvenido</Text>
-        <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
-      </View>
-
-      <TouchableOpacity
-        style={styles.googleButton}
-        onPress={signInWithGoogle}
-        disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <>
-            <Image
-              source={require('../assets/google-icon.png')}
-              style={styles.googleIcon}
-            />
-            <Text style={styles.buttonText}>Continuar con Google</Text>
-          </>
-        )}
-      </TouchableOpacity>
+      {/* Imagen de fondo */}
+      <ImageBackground
+        source={require('../assets/background.jpg')}
+        style={styles.backgroundImage}
+        resizeMode="cover">
+        {/* Vista con gradiente */}
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../assets/logo2.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Entrenamiento</Text>
+            <Text style={styles.title}>Online</Text>
+          </View>
+        </View>
+        <LinearGradient
+          colors={['transparent', '#0c0e20']}
+          style={styles.gradientView}>
+          {/* Botón de Google */}
+          <TouchableOpacity
+            style={styles.googleButton}
+            onPress={signInWithGoogle}
+            disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Image
+                  source={require('../assets/google-icon.png')}
+                  style={styles.googleIcon}
+                />
+                <Text style={styles.googleButtonText}>
+                  Continuar con Google
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </LinearGradient>
+      </ImageBackground>
     </View>
   );
 };
@@ -179,47 +222,65 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
-    padding: 20,
+  },
+  backgroundImage: {
+    flex: 1, // Ocupa toda la pantalla
+    justifyContent: 'flex-end', // Asegura que el gradiente y el botón estén al final
+  },
+  gradientView: {
+    height: '60%', // Desde el 40% hacia abajo
     justifyContent: 'center',
+    alignItems: 'center',
   },
   logoContainer: {
-    alignItems: 'center',
-    marginBottom: 50,
+    position: 'absolute', // Hace que el contenedor sea absoluto respecto al padre
+    top: '5%', // 10% desde la parte superior,
+    width: '100%', // Asegura que ocupe todo el ancho
+    alignItems: 'center', // Centra el contenido horizontalmente
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   logo: {
-    width: 120,
-    height: 120,
-    marginBottom: 20,
+    width: 100,
+    height: 100,
+    marginBottom: 10,
+  },
+  titleContainer: {
+    display: 'flex',
+    flexDirection: 'column',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
   },
   googleButton: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 8,
+    position: 'absolute',
+    bottom: '20%',
+    backgroundColor: '#831540', // Azul de Google #4285F4 o sino un rosa rojizo #b11f44
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: {width: 0, height: 2},
+    elevation: 5,
+    minWidth: 250,
   },
   googleIcon: {
-    width: 24,
-    height: 24,
+    width: 25,
+    height: 25,
     marginRight: 10,
   },
-  buttonText: {
-    color: '#000',
+  googleButtonText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
 });
+
 export default LoginScreen;

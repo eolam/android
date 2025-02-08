@@ -105,3 +105,23 @@ export interface InVideoOption {
   value: string; // Asumiendo que _id es un string
   label: string; // Asumiendo que name es un string
 }
+
+export interface InUserLocalStorage {
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null | undefined;
+  id: string | null | undefined;
+}
+
+export interface InProfileData {
+  email: string;
+  first_name: string;
+  last_name: string;
+  birthday: string;
+  gym_name: string;
+  day_of_payment: string;
+  goals: string;
+  last_training_day: string;
+  training_place: string;
+  number_trainning_week: string;
+}

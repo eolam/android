@@ -1,25 +1,23 @@
-import React, {useContext, useEffect, useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
-// import {InUser} from '../interfaces/user.interfaces';
-// import {URL_NGROK} from '@env';
+import React, {useEffect, useState} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import {InUser} from '../interfaces/user.interfaces';
+import {URL_NGROK} from '@env';
 // import {UserContext} from '../context/UserContext';
 
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {ROUTES} from '../navigation/routes';
-import {RootStackParamList} from '../navigation/types';
+// import {RootStackParamList} from '../navigation/types';
 import isActive from '../services/isActive';
-import {URL_NGROK} from '@env';
-import {InUser} from '../interfaces/user.interfaces';
-import {UserContext} from '../context/UserContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen = ({}) => {
-  const {userInfo} = useContext(UserContext);
+  //   const {userInfo} = useContext(UserContext);
 
   const navigation = useAppNavigation();
 
-  const handleNavigate = (route: keyof RootStackParamList) => {
-    navigation.navigate(route);
-  };
+  //   const handleNavigate = (route: keyof RootStackParamList) => {
+  //     navigation.navigate(route);
+  //   };
 
   const [, setUser] = useState<InUser | null>(null);
   const [isActiveRes, setIsActiveRes] = useState<boolean>();
@@ -27,11 +25,51 @@ const HomeScreen = ({}) => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const res = await fetch(`${URL_NGROK}/api/user/email/${userInfo.email}`);
-      const userResponse: InUser | null = await res.json();
-      if (userResponse && userResponse._id) {
-        setUser(userResponse);
-        setIsActiveRes(await isActive(userResponse._id));
+      // Cerrar sesión
+      const Logout = async () => {
+        await AsyncStorage.setItem(
+          'userInfo',
+          JSON.stringify({
+            email: null,
+            displayName: null,
+            photoURL: null,
+            id: null,
+          }),
+        );
+        navigation.navigate('Login');
+      };
+      try {
+        const userString = await AsyncStorage.getItem('userInfo');
+        console.log('el userString es: ', userString);
+        if (!userString) {
+          Alert.alert('Error', 'No hay usuario guardado', [
+            {text: 'Ok', onPress: () => Logout()},
+          ]);
+          return;
+        }
+        const {email} = JSON.parse(userString);
+        console.log('el email es: ', email);
+        if (!email) {
+          Alert.alert('Error', 'No hay email guardado', [
+            {text: 'Ok', onPress: () => Logout()},
+          ]);
+          return;
+        }
+        const res = await fetch(`${URL_NGROK}/api/user/email/${email}`, {
+          method: 'GET',
+          headers: {'Content-Type': 'application/json'},
+        });
+        if (res.ok) {
+          const userResponse: InUser = await res.json();
+          if (userResponse && userResponse._id) {
+            setUser(userResponse);
+            setIsActiveRes(await isActive(userResponse._id));
+          }
+        }
+      } catch (error) {
+        Alert.alert('Error', 'Se produjo un error de login', [
+          {text: 'Ok', onPress: () => Logout()},
+        ]);
       }
     };
     const messageOfDay = async () => {
@@ -43,33 +81,35 @@ const HomeScreen = ({}) => {
 
     fetchUser();
     messageOfDay();
-  }, [userInfo.email]);
+  }, []);
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>{msgOfDay}</Text>
 
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>My profile</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate(ROUTES.PROFILE)}>
+        <Text style={styles.buttonText}>Mi perfil</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, !isActiveRes ? styles.buttonDisabled : null]}
         disabled={!isActiveRes}
-        onPress={() => handleNavigate(ROUTES.TRAINING_HISTORY)}>
+        onPress={() => navigation.navigate(ROUTES.TRAINING_HISTORY)}>
         <Text style={styles.buttonText}>Historial de entrenamientos</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.button, !isActiveRes ? styles.buttonDisabled : null]}
         disabled={!isActiveRes}
-        onPress={() => handleNavigate(ROUTES.NEW_TRAININGS)}>
+        onPress={() => navigation.navigate(ROUTES.NEW_TRAININGS)}>
         <Text style={styles.buttonText}>Nuevos entrenamientos</Text>
       </TouchableOpacity>
 
       {!isActiveRes && (
         <Text style={styles.footer}>
-          Contactate con tu profe para regularizar tu situacion! Saludos
+          Tu cuenta está inactiva, regulariza la situación con tu entrenador.
         </Text>
       )}
     </View>
@@ -91,7 +131,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   button: {
-    backgroundColor: '#D60D63', // Color rosa oscuro
+    backgroundColor: '#831540', // Para color rosa oscuro: #D60D63
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
