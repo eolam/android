@@ -13,5 +13,9 @@ export type RootStackParamList = {
   };
   NewExercise: {
     exerciseId: string;
+    week_number: string;
+  };
+  TrainingFinished: {
+    week_number: string;
   };
 };

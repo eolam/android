@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, FlatList, StyleSheet} from 'react-native';
 import {InExercise, InDay} from '../interfaces/user.interfaces';
-import {URL_NGROK} from '@env';
+import {URL_BASE} from '@env';
 import {useContext} from 'react';
 import {UserContext} from '../context/UserContext';
 import {useRoute, RouteProp} from '@react-navigation/native';
@@ -19,7 +19,7 @@ const ExerciseList = () => {
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetch(
-        `${URL_NGROK}/api/user/${userInfo.id}/day/${dayId}`,
+        `${URL_BASE}/api/user/${userInfo.id}/day/${dayId}`,
       );
       const dayData: InDay = await data.json();
 

@@ -1,5 +1,6 @@
 export interface InWeek extends Document {
   week_number: number;
+  rpe: string;
   amount_training_per_week: number;
   days: InDay[];
 }
@@ -27,29 +28,22 @@ export interface InExercise extends Document {
 }
 
 export interface InReport extends Document {
-  _id: string | undefined;
-  series: number | undefined;
-  left_weight?: number;
-  right_weight?: number;
-  single_weight?: number;
-  repetitions: number;
-  interval: number | undefined;
-  comment_user?: string;
-  rpe: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | undefined;
-  day: Date | undefined;
+  _id: string | null;
+  series: number | null;
+  interval: number | null;
+  single_weight: number | null;
+  repetitions: number | null;
+  left_weight: number | null;
+  right_weight: number | null;
+  comment_user: string | undefined;
+  rpe: number | null;
+  day: Date;
 }
 
 // Interfaz para un día de entrenamiento
 export interface InDay extends Document {
   _id: string;
   exercises: InExercise[];
-}
-
-// Interfaz para una semana de entrenamiento
-export interface InWeek extends Document {
-  week_number: number;
-  amount_training_per_week: number;
-  days: InDay[];
 }
 
 // Interfaz para el usuario

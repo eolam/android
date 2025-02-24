@@ -1,23 +1,16 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 import {InUser} from '../interfaces/user.interfaces';
-import {URL_NGROK} from '@env';
+import {URL_BASE} from '@env';
 // import {UserContext} from '../context/UserContext';
 
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {ROUTES} from '../navigation/routes';
-// import {RootStackParamList} from '../navigation/types';
 import isActive from '../services/isActive';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen = ({}) => {
-  //   const {userInfo} = useContext(UserContext);
-
   const navigation = useAppNavigation();
-
-  //   const handleNavigate = (route: keyof RootStackParamList) => {
-  //     navigation.navigate(route);
-  //   };
 
   const [, setUser] = useState<InUser | null>(null);
   const [isActiveRes, setIsActiveRes] = useState<boolean>();
@@ -40,7 +33,6 @@ const HomeScreen = ({}) => {
       };
       try {
         const userString = await AsyncStorage.getItem('userInfo');
-        console.log('el userString es: ', userString);
         if (!userString) {
           Alert.alert('Error', 'No hay usuario guardado', [
             {text: 'Ok', onPress: () => Logout()},
@@ -48,14 +40,13 @@ const HomeScreen = ({}) => {
           return;
         }
         const {email} = JSON.parse(userString);
-        console.log('el email es: ', email);
         if (!email) {
           Alert.alert('Error', 'No hay email guardado', [
             {text: 'Ok', onPress: () => Logout()},
           ]);
           return;
         }
-        const res = await fetch(`${URL_NGROK}/api/user/email/${email}`, {
+        const res = await fetch(`${URL_BASE}/api/user/email/${email}`, {
           method: 'GET',
           headers: {'Content-Type': 'application/json'},
         });
@@ -63,6 +54,8 @@ const HomeScreen = ({}) => {
           const userResponse: InUser = await res.json();
           if (userResponse && userResponse._id) {
             setUser(userResponse);
+            console.log(userResponse, 'userResponse');
+
             setIsActiveRes(await isActive(userResponse._id));
           }
         }
@@ -73,7 +66,7 @@ const HomeScreen = ({}) => {
       }
     };
     const messageOfDay = async () => {
-      const res = await fetch(`${URL_NGROK}/api/dailyMessage`);
+      const res = await fetch(`${URL_BASE}/api/dailyMessage`);
       const result = await res.json();
 
       setMsgOfDay(result.message as string);
@@ -81,7 +74,9 @@ const HomeScreen = ({}) => {
 
     fetchUser();
     messageOfDay();
-  }, []);
+  }, [navigation]);
+
+  console.log(isActiveRes, 'isActive');
 
   return (
     <View style={styles.container}>

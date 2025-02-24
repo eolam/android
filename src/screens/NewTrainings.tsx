@@ -8,18 +8,11 @@ import {
   ListRenderItemInfo,
 } from 'react-native';
 import {InDay, InExercise, InUser, InWeek} from '../interfaces/user.interfaces';
-import {URL_NGROK} from '@env';
+import {URL_BASE} from '@env';
 import {UserContext} from '../context/UserContext';
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {RootStackParamList} from '../navigation/types';
 import {ROUTES} from '../navigation/routes';
-
-// type Report = {
-//   title: string;
-//   description?: string;
-//   id: number;
-//   isUnlocked: boolean;
-// };
 
 const NewTrainings = () => {
   const {userInfo} = useContext(UserContext);
@@ -35,11 +28,8 @@ const NewTrainings = () => {
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('entro');
-
     const fetchData = async () => {
-      console.log('week', week);
-      const data = await fetch(`${URL_NGROK}/api/user/${id}`);
+      const data = await fetch(`${URL_BASE}/api/user/${id}`);
       const res: InUser = await data.json();
 
       const transform: InWeek[] = res.weeks;
@@ -76,6 +66,7 @@ const NewTrainings = () => {
               onPress={() =>
                 handleNavigate(ROUTES.NEW_EXERCISE, {
                   exerciseId: exercise._id,
+                  week_number: lastWeek,
                 })
               }>
               <Text style={styles.reportText}>Ejercicio {index + 1}</Text>

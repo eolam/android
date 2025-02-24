@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useContext} from 'react';
 import {View, Text, TouchableOpacity, FlatList, StyleSheet} from 'react-native';
-import {URL_NGROK} from '@env';
+import {URL_BASE} from '@env';
 import {InWeek, InUser} from '../interfaces/user.interfaces';
 import {UserContext} from '../context/UserContext';
 import {RootStackParamList} from '../navigation/types';
@@ -21,7 +21,7 @@ const TrainingHistory = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetch(`${URL_NGROK}/api/user/${id}`);
+      const data = await fetch(`${URL_BASE}/api/user/${id}`);
       const res: InUser = await data.json();
 
       setWeeks(res.weeks);

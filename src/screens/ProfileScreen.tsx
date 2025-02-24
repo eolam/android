@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import {URL_NGROK} from '@env';
+import {URL_BASE} from '@env';
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import EditPersonalInfoScreen from './EditProfile';
@@ -47,8 +47,7 @@ const ProfileScreen = () => {
         return;
       }
 
-      console.log(URL_NGROK);
-      const response = await fetch(`${URL_NGROK}/api/mobile/user/${id}`, {
+      const response = await fetch(`${URL_BASE}/api/mobile/user/${id}`, {
         method: 'GET',
         headers: {'Content-Type': 'application/json'},
       });
@@ -92,7 +91,7 @@ const ProfileScreen = () => {
       if (!id) {
         throw new Error('El usuario no tiene ID');
       }
-      const response = await fetch(`${URL_NGROK}/api/mobile/user/${id}`, {
+      const response = await fetch(`${URL_BASE}/api/mobile/user/${id}`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(updatedData),

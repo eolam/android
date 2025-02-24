@@ -8,4 +8,5 @@ export const ROUTES = {
   EXERCISE_LIST: 'ExerciseList',
   NEW_EXERCISE: 'NewExercise',
   NEED_PAY: 'NeedPay',
+  TRAINING_FINISHED: 'TrainingFinished',
 } as const;

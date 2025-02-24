@@ -15,7 +15,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {useAppNavigation} from '../hooks/useAppNavigation';
-import {URL_NGROK} from '@env';
+import {URL_BASE} from '@env';
 
 const RegisterScreen = () => {
   const navigation = useAppNavigation();
@@ -115,8 +115,7 @@ const RegisterScreen = () => {
     if (validateStepTwoInputs()) {
       setIsLoading(true);
       try {
-		console.log(URL_NGROK);
-        const response = await fetch(`${URL_NGROK}/api/mobile/user/`, {
+        const response = await fetch(`${URL_BASE}/api/mobile/user/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
