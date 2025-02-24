@@ -28,6 +28,8 @@ const LoginScreen = () => {
 
   // Configurar Google Sign-In
   useEffect(() => {
+    console.log('Porque no anda sin este log?', GOOGLE_WEB_CLIENT);
+
     GoogleSignin.configure({
       webClientId: GOOGLE_WEB_CLIENT,
       offlineAccess: true,
