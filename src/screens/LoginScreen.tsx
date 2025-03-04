@@ -25,13 +25,14 @@ const LoginScreen = () => {
   const navigation = useAppNavigation();
   const [loading, setLoading] = useState(false);
   const {setUserInfo} = useContext(UserContext);
+  let url_base: string = URL_BASE;
 
   // Configurar Google Sign-In
   useEffect(() => {
-    console.log('Porque no anda sin este log?', GOOGLE_WEB_CLIENT);
+    const clientId = GOOGLE_WEB_CLIENT;
 
     GoogleSignin.configure({
-      webClientId: GOOGLE_WEB_CLIENT,
+      webClientId: clientId,
       offlineAccess: true,
       forceCodeForRefreshToken: true,
     });
@@ -48,7 +49,7 @@ const LoginScreen = () => {
         };
       }
 
-      const response = await fetch(`${URL_BASE}/api/user/email/${user_email}`, {
+      const response = await fetch(`${url_base}/api/user/email/${user_email}`, {
         method: 'GET',
         headers: {'Content-Type': 'application/json'},
       });
