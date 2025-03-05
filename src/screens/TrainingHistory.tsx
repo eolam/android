@@ -1,17 +1,30 @@
-import React, {useState, useEffect, useContext} from 'react';
-import {View, Text, TouchableOpacity, FlatList, StyleSheet} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import {URL_BASE} from '@env';
 import {InWeek, InUser} from '../interfaces/user.interfaces';
-import {UserContext} from '../context/UserContext';
+// import {UserContext} from '../context/UserContext';
 import {RootStackParamList} from '../navigation/types';
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {ROUTES} from '../navigation/routes';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TrainingHistory = () => {
-  const {userInfo} = useContext(UserContext);
-  const {id} = userInfo;
+  let url_base: string = URL_BASE;
+
+  //   const {userInfo} = useContext(UserContext);
+  //   const {id} = userInfo;
   const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
   const [weeks, setWeeks] = useState<InWeek[]>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const navigation = useAppNavigation();
 
@@ -21,20 +34,31 @@ const TrainingHistory = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetch(`${URL_BASE}/api/user/${id}`);
+      const userString = await AsyncStorage.getItem('userInfo');
+      if (!userString) {
+        Alert.alert('Error', 'No hay usuario guardado', [{text: 'Ok'}]);
+        return;
+      }
+      const {id} = JSON.parse(userString);
+      if (!id) {
+        Alert.alert('Error', 'No hay ID guardado', [{text: 'Ok'}]);
+        return;
+      }
+      const data = await fetch(`${url_base}/api/user/${id}`);
       const res: InUser = await data.json();
 
       setWeeks(res.weeks);
+      setIsLoading(false);
     };
     fetchData();
-  }, [id]);
+  }, [url_base]);
 
   const toggleExpand = (weekId: string) => {
     setExpandedWeek(expandedWeek === weekId ? null : weekId);
   };
 
   const renderWeekItem = ({item}: {item: InWeek}) => (
-    <View>
+    <ScrollView>
       <TouchableOpacity
         style={styles.weekButton}
         onPress={() => toggleExpand(item.week_number.toString())}>
@@ -66,16 +90,30 @@ const TrainingHistory = () => {
           ))}
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={weeks}
-        renderItem={renderWeekItem}
-        keyExtractor={item => item.week_number.toString()}
-      />
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Home')}>
+        <Text style={styles.buttonText}>Volver</Text>
+      </TouchableOpacity>
+      <Text style={styles.title}>Historial de entrenamiento</Text>
+      {isLoading ? (
+        <ActivityIndicator
+          style={styles.container}
+          color="#D81B60"
+          size={'large'}
+        />
+      ) : (
+        <FlatList
+          data={weeks?.reverse() || []}
+          renderItem={renderWeekItem}
+          keyExtractor={item => item.week_number.toString()}
+        />
+      )}
     </View>
   );
 };
@@ -86,10 +124,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 200,
+    paddingTop: 100,
   },
   weekButton: {
-    backgroundColor: '#b22658',
+    backgroundColor: '#831540',
     paddingVertical: 10,
     paddingHorizontal: 20,
     marginVertical: 5,
@@ -97,7 +135,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 300,
+    width: '100%',
   },
   weekButtonText: {
     color: '#fff',
@@ -117,6 +155,23 @@ const styles = StyleSheet.create({
   reportText: {
     color: '#000',
   },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 20,
+    marginTop: 50,
+  },
+  button: {
+    backgroundColor: '#831540',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginVertical: 10,
+    alignItems: 'center',
+    width: '80%',
+  },
+  buttonText: {color: 'white', fontSize: 16, fontWeight: 'bold'},
 });
 
 export default TrainingHistory;

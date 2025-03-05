@@ -33,8 +33,6 @@ const LoginScreen = () => {
 
     GoogleSignin.configure({
       webClientId: clientId,
-      offlineAccess: true,
-      forceCodeForRefreshToken: true,
     });
   }, []);
 
@@ -142,27 +140,27 @@ const LoginScreen = () => {
 
       const emailExists = await checkEmailInBackend(user.email);
       if (!emailExists.error) {
-        const userInfo = {
+        const userInfoData = {
           email: user.email,
           displayName: user.displayName,
           photoURL: user.photoURL,
           id: emailExists.id,
         };
 
-        await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
-        setUserInfo(userInfo);
+        await AsyncStorage.setItem('userInfo', JSON.stringify(userInfoData));
+        setUserInfo(userInfoData);
 
         navigation.navigate('Home');
       } else {
-        const userInfo = {
+        const userInfoData = {
           email: user.email,
           displayName: user.displayName,
           photoURL: user.photoURL,
           id: null,
         };
 
-        await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
-        setUserInfo(userInfo);
+        await AsyncStorage.setItem('userInfo', JSON.stringify(userInfoData));
+        setUserInfo(userInfoData);
 
         navigation.navigate('Register');
       }

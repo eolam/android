@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   StyleSheet,
   View,
@@ -6,24 +6,27 @@ import {
   Text,
   TextInput,
   ScrollView,
+  Alert,
 } from 'react-native';
 import YoutubeIframe from 'react-native-youtube-iframe';
 import {InExercise, InReport, InUser} from '../interfaces/user.interfaces';
 import {URL_BASE} from '@env';
-import {UserContext} from '../context/UserContext';
+// import {UserContext} from '../context/UserContext';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/types';
 import {ROUTES} from '../navigation/routes';
 import {useAppNavigation} from '../hooks/useAppNavigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type NewExerciseRouteProp = RouteProp<RootStackParamList, 'NewExercise'>;
 
 const NewExercise = () => {
-  const {userInfo} = useContext(UserContext);
+  let url_base: string = URL_BASE;
+  //   const {userInfo} = useContext(UserContext);
   const routeP = useRoute<NewExerciseRouteProp>();
   const {exerciseId} = routeP.params;
 
-  const userId = userInfo.id;
+  //   const userId = userInfo.id;
   const [, setUser] = useState<InUser | null>();
   const [exercise, setExercise] = useState<InExercise | null>();
   const [isLoading, setIsLoading] = useState(false);
@@ -31,12 +34,23 @@ const NewExercise = () => {
   const navigation = useAppNavigation();
 
   useEffect(() => {
+    // let userId: string = '';
     const fetchData = async () => {
       setIsLoading(true);
       try {
         // Fetch user data
-
-        const userResponse = await fetch(`${URL_BASE}/api/user/${userId}`);
+        const userString = await AsyncStorage.getItem('userInfo');
+        if (!userString) {
+          Alert.alert('Error', 'No hay usuario guardado', [{text: 'Ok'}]);
+          return;
+        }
+        const {id} = JSON.parse(userString);
+        if (!id) {
+          Alert.alert('Error', 'No hay ID guardado', [{text: 'Ok'}]);
+          return;
+        }
+        const userId = id;
+        const userResponse = await fetch(`${url_base}/api/user/${userId}`);
 
         if (!userResponse.ok) {
           console.error(
@@ -59,7 +73,7 @@ const NewExercise = () => {
 
         // Fetch exercise data
         const exerciseResponse = await fetch(
-          `${URL_BASE}/api/user/training/${userId}/exercise/${exerciseId}`,
+          `${url_base}/api/user/training/${userId}/exercise/${exerciseId}`,
         );
         if (!exerciseResponse.ok) {
           console.error(
@@ -87,7 +101,7 @@ const NewExercise = () => {
     };
 
     fetchData();
-  }, [exerciseId, userId]);
+  }, [exerciseId, url_base]);
 
   const [report, setReport] = useState<InReport>({
     _id: exercise?.report?._id || null,
@@ -146,8 +160,18 @@ const NewExercise = () => {
         ...report,
         day: new Date(),
       };
-
-      const response = await fetch(`${URL_BASE}/api/user/training/report`, {
+      const userString = await AsyncStorage.getItem('userInfo');
+      if (!userString) {
+        Alert.alert('Error', 'No hay usuario guardado', [{text: 'Ok'}]);
+        return;
+      }
+      const {id} = JSON.parse(userString);
+      if (!id) {
+        Alert.alert('Error', 'No hay ID guardado', [{text: 'Ok'}]);
+        return;
+      }
+      const userId = id;
+      const response = await fetch(`${url_base}/api/user/training/report`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,8 +201,19 @@ const NewExercise = () => {
   const handleNextExercise = async () => {
     setIsLoading(true);
     try {
+      const userString = await AsyncStorage.getItem('userInfo');
+      if (!userString) {
+        Alert.alert('Error', 'No hay usuario guardado', [{text: 'Ok'}]);
+        return;
+      }
+      const {id} = JSON.parse(userString);
+      if (!id) {
+        Alert.alert('Error', 'No hay ID guardado', [{text: 'Ok'}]);
+        return;
+      }
+      const userId = id;
       const response = await fetch(
-        `${URL_BASE}/api/user/training/next-exercise`,
+        `${url_base}/api/user/training/next-exercise`,
         {
           method: 'POST',
           headers: {
@@ -251,39 +286,39 @@ const NewExercise = () => {
             Tabla con info para realizar el entrenamiento
           </Text>
           <View style={styles.row}>
-            <Text style={styles.label}>Series</Text>
+            <Text style={styles.label}>Series: </Text>
             <Text style={styles.value}>{exercise?.series}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Repeticiones</Text>
+            <Text style={styles.label}>Repeticiones: </Text>
             <Text style={styles.value}>{exercise?.repetition}</Text>
           </View>
           {exercise?.single_weight ? (
             <View style={styles.row}>
-              <Text style={styles.label}>Peso simple</Text>
+              <Text style={styles.label}>Peso simple: </Text>
               <Text style={styles.value}>{exercise?.single_weight}</Text>
             </View>
           ) : (
             <View>
               <View style={styles.row}>
-                <Text style={styles.label}>Peso lateral izquierdo</Text>
+                <Text style={styles.label}>Peso lateral izquierdo: </Text>
                 <Text style={styles.value}>{exercise?.left_weight}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={styles.label}>Peso lateral derecho</Text>
+                <Text style={styles.label}>Peso lateral derecho: </Text>
                 <Text style={styles.value}>{exercise?.right_weight}</Text>
               </View>
             </View>
           )}
           <View style={styles.row}>
-            <Text style={styles.label}>Descanso</Text>
+            <Text style={styles.label}>Descanso: </Text>
             <Text style={styles.value}>{exercise?.interval}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Rpe: </Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Tipo de Repeticiones</Text>
+            <Text style={styles.label}>Tipo: </Text>
             <Text style={styles.value}>{exercise?.repetition_type}</Text>
           </View>
           <View style={styles.row}>
@@ -450,30 +485,32 @@ const styles = StyleSheet.create({
     marginBottom: '5%',
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     marginBottom: '3%',
     backgroundColor: '#1E293B',
     borderRadius: 8,
     padding: '3%',
     width: '100%',
-    height: 45,
+    height: 'auto',
+    minHeight: 55,
   },
   label: {
     fontSize: 16,
     color: '#fff',
-    width: '65%',
+    width: '100%',
     paddingRight: '2%',
+    textAlign: 'center',
   },
   value: {
     fontSize: 16,
     color: '#fff',
-    width: '35%',
-    textAlign: 'right',
+    width: '45%',
+    textAlign: 'center',
   },
   inputRow: {
     marginBottom: '3%',
-    height: 45,
+    height: 55,
     justifyContent: 'center',
   },
   input: {

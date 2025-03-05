@@ -16,6 +16,7 @@ import EditPersonalInfoScreen from './EditProfile';
 import {InProfileData} from '../interfaces/user.interfaces';
 
 const ProfileScreen = () => {
+  let url_base: string = URL_BASE;
   const navigation = useAppNavigation();
   const [userData, setUserData] = useState<InProfileData>({
     email: '',
@@ -47,7 +48,7 @@ const ProfileScreen = () => {
         return;
       }
 
-      const response = await fetch(`${URL_BASE}/api/mobile/user/${id}`, {
+      const response = await fetch(`${url_base}/api/mobile/user/${id}`, {
         method: 'GET',
         headers: {'Content-Type': 'application/json'},
       });
@@ -73,7 +74,7 @@ const ProfileScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [url_base]);
 
   useEffect(() => {
     fetchUserData();
@@ -91,7 +92,7 @@ const ProfileScreen = () => {
       if (!id) {
         throw new Error('El usuario no tiene ID');
       }
-      const response = await fetch(`${URL_BASE}/api/mobile/user/${id}`, {
+      const response = await fetch(`${url_base}/api/mobile/user/${id}`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(updatedData),

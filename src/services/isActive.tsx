@@ -1,8 +1,9 @@
 import {URL_BASE} from '@env';
 
 const isActive = async (userId: string) => {
+	let url_base: string = URL_BASE;
   try {
-    const response = await fetch(`${URL_BASE}/api/user/${userId}/isActive`, {
+    const response = await fetch(`${url_base}/api/user/${userId}/isActive`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

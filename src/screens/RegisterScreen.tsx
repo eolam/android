@@ -18,6 +18,8 @@ import {useAppNavigation} from '../hooks/useAppNavigation';
 import {URL_BASE} from '@env';
 
 const RegisterScreen = () => {
+  let url_base: string = URL_BASE;
+
   const navigation = useAppNavigation();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -115,7 +117,7 @@ const RegisterScreen = () => {
     if (validateStepTwoInputs()) {
       setIsLoading(true);
       try {
-        const response = await fetch(`${URL_BASE}/api/mobile/user/`, {
+        const response = await fetch(`${url_base}/api/mobile/user/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
