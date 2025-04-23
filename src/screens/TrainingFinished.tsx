@@ -11,18 +11,13 @@ import {ROUTES} from '../navigation/routes';
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {RootStackParamList} from '../navigation/types';
 import {SelectList} from 'react-native-dropdown-select-list';
-import {URL_BASE} from '@env';
-// import {UserContext} from '../context/UserContext';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 const TrainingFinished = () => {
-	let url_base: string = URL_BASE;
-
   const navigation = useAppNavigation();
   const [selected, setSelected] = React.useState<string>('');
-//   const {userInfo} = useContext(UserContext);
+  //   const {userInfo} = useContext(UserContext);
   const route = useRoute<RouteProp<RootStackParamList, 'TrainingFinished'>>();
   const {week_number} = route.params;
 
@@ -46,7 +41,7 @@ const TrainingFinished = () => {
     }
 
     try {
-		const userString = await AsyncStorage.getItem('userInfo');
+      const userString = await AsyncStorage.getItem('userInfo');
       if (!userString) {
         Alert.alert('Error', 'No hay usuario guardado', [{text: 'Ok'}]);
         return;
@@ -56,17 +51,20 @@ const TrainingFinished = () => {
         Alert.alert('Error', 'No hay ID guardado', [{text: 'Ok'}]);
         return;
       }
-      const response = await fetch(`${url_base}/api/user/training/reportWeek`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        'https://eolam.vercel.app/api/user/training/reportWeek',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: id,
+            week_number,
+            rpe,
+          }),
         },
-        body: JSON.stringify({
-          userId: id,
-          week_number,
-          rpe,
-        }),
-      });
+      );
 
       if (response.ok) {
         navigation.navigate(ROUTES.HOME);

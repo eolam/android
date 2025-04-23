@@ -1,20 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, FlatList, StyleSheet, Alert} from 'react-native';
 import {InExercise, InDay} from '../interfaces/user.interfaces';
-import {URL_BASE} from '@env';
-// import {useContext} from 'react';
-// import {UserContext} from '../context/UserContext';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 type HistoryExerciseRouteProp = RouteProp<RootStackParamList, 'ExerciseList'>;
 
 const ExerciseList = () => {
-  let url_base: string = URL_BASE;
-
-//   const {userInfo} = useContext(UserContext);
   const [day, setDay] = useState<InDay | null>(null);
 
   const route = useRoute<HistoryExerciseRouteProp>();
@@ -22,7 +15,7 @@ const ExerciseList = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-		const userString = await AsyncStorage.getItem('userInfo');
+      const userString = await AsyncStorage.getItem('userInfo');
       if (!userString) {
         Alert.alert('Error', 'No hay usuario guardado', [{text: 'Ok'}]);
         return;
@@ -33,14 +26,14 @@ const ExerciseList = () => {
         return;
       }
       const data = await fetch(
-        `${url_base}/api/user/${id}/day/${dayId}`,
+        `https://eolam.vercel.app/api/user/${id}/day/${dayId}`,
       );
       const dayData: InDay = await data.json();
 
       setDay(dayData);
     };
     fetchData();
-  }, [dayId, url_base]);
+  }, [dayId]);
 
   const renderItem = ({item}: {item: InExercise}) => (
     <View style={styles.row}>

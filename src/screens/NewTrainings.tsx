@@ -9,18 +9,12 @@ import {
   Alert,
 } from 'react-native';
 import {InDay, InExercise, InUser, InWeek} from '../interfaces/user.interfaces';
-import {URL_BASE} from '@env';
-// import {UserContext} from '../context/UserContext';
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {RootStackParamList} from '../navigation/types';
 import {ROUTES} from '../navigation/routes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NewTrainings = () => {
-  let url_base: string = URL_BASE;
-
-  //   const {userInfo} = useContext(UserContext);
-
   const navigation = useAppNavigation();
 
   const handleNavigate = (route: keyof RootStackParamList, params?: any) => {
@@ -43,7 +37,7 @@ const NewTrainings = () => {
         Alert.alert('Error', 'No hay ID guardado', [{text: 'Ok'}]);
         return;
       }
-      const data = await fetch(`${url_base}/api/user/${id}`);
+      const data = await fetch(`https://eolam.vercel.app/api/user/${id}`);
       const res: InUser = await data.json();
 
       const transform: InWeek[] = res.weeks;
@@ -51,7 +45,7 @@ const NewTrainings = () => {
       setWeeks(transform);
     };
     fetchData();
-  }, [url_base]);
+  }, []);
 
   const days: InDay[] | undefined = week?.slice(-1)[0]?.days;
 

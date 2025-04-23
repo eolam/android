@@ -9,14 +9,12 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import {URL_BASE} from '@env';
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import EditPersonalInfoScreen from './EditProfile';
 import {InProfileData} from '../interfaces/user.interfaces';
 
 const ProfileScreen = () => {
-  let url_base: string = URL_BASE;
   const navigation = useAppNavigation();
   const [userData, setUserData] = useState<InProfileData>({
     email: '',
@@ -48,10 +46,13 @@ const ProfileScreen = () => {
         return;
       }
 
-      const response = await fetch(`${url_base}/api/mobile/user/${id}`, {
-        method: 'GET',
-        headers: {'Content-Type': 'application/json'},
-      });
+      const response = await fetch(
+        `https://eolam.vercel.app/api/mobile/user/${id}`,
+        {
+          method: 'GET',
+          headers: {'Content-Type': 'application/json'},
+        },
+      );
       const data = await response.json();
       const cleanDate = data.birthday?.split('T') || '';
 
@@ -74,7 +75,7 @@ const ProfileScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, [url_base]);
+  }, []);
 
   useEffect(() => {
     fetchUserData();
@@ -92,11 +93,14 @@ const ProfileScreen = () => {
       if (!id) {
         throw new Error('El usuario no tiene ID');
       }
-      const response = await fetch(`${url_base}/api/mobile/user/${id}`, {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(updatedData),
-      });
+      const response = await fetch(
+        `https://eolam.vercel.app/api/mobile/user/${id}`,
+        {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(updatedData),
+        },
+      );
 
       if (!response.ok) {
         if (response.status === 400 || response.status === 404) {

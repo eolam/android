@@ -10,8 +10,6 @@ import {
 } from 'react-native';
 import YoutubeIframe from 'react-native-youtube-iframe';
 import {InExercise, InReport, InUser} from '../interfaces/user.interfaces';
-import {URL_BASE} from '@env';
-// import {UserContext} from '../context/UserContext';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/types';
 import {ROUTES} from '../navigation/routes';
@@ -21,8 +19,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 type NewExerciseRouteProp = RouteProp<RootStackParamList, 'NewExercise'>;
 
 const NewExercise = () => {
-  let url_base: string = URL_BASE;
-  //   const {userInfo} = useContext(UserContext);
   const routeP = useRoute<NewExerciseRouteProp>();
   const {exerciseId} = routeP.params;
 
@@ -50,7 +46,9 @@ const NewExercise = () => {
           return;
         }
         const userId = id;
-        const userResponse = await fetch(`${url_base}/api/user/${userId}`);
+        const userResponse = await fetch(
+          `https://eolam.vercel.app/api/user/${userId}`,
+        );
 
         if (!userResponse.ok) {
           console.error(
@@ -73,7 +71,7 @@ const NewExercise = () => {
 
         // Fetch exercise data
         const exerciseResponse = await fetch(
-          `${url_base}/api/user/training/${userId}/exercise/${exerciseId}`,
+          `https://eolam.vercel.app/api/user/training/${userId}/exercise/${exerciseId}`,
         );
         if (!exerciseResponse.ok) {
           console.error(
@@ -101,7 +99,7 @@ const NewExercise = () => {
     };
 
     fetchData();
-  }, [exerciseId, url_base]);
+  }, [exerciseId]);
 
   const [report, setReport] = useState<InReport>({
     _id: exercise?.report?._id || null,
@@ -171,17 +169,20 @@ const NewExercise = () => {
         return;
       }
       const userId = id;
-      const response = await fetch(`${url_base}/api/user/training/report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        'https://eolam.vercel.app/api/user/training/report',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: userId,
+            exerciseId: exerciseId,
+            report: updatedReport,
+          }),
         },
-        body: JSON.stringify({
-          userId: userId,
-          exerciseId: exerciseId,
-          report: updatedReport,
-        }),
-      });
+      );
       if (!response.ok) {
         console.error(
           'Error en respuesta de envío de ejercicio:',
@@ -213,7 +214,7 @@ const NewExercise = () => {
       }
       const userId = id;
       const response = await fetch(
-        `${url_base}/api/user/training/next-exercise`,
+        'https://eolam.vercel.app/api/user/training/next-exercise',
         {
           method: 'POST',
           headers: {

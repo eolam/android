@@ -9,7 +9,6 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import {URL_BASE} from '@env';
 import {InWeek, InUser} from '../interfaces/user.interfaces';
 // import {UserContext} from '../context/UserContext';
 import {RootStackParamList} from '../navigation/types';
@@ -18,10 +17,6 @@ import {ROUTES} from '../navigation/routes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TrainingHistory = () => {
-  let url_base: string = URL_BASE;
-
-  //   const {userInfo} = useContext(UserContext);
-  //   const {id} = userInfo;
   const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
   const [weeks, setWeeks] = useState<InWeek[]>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -44,14 +39,14 @@ const TrainingHistory = () => {
         Alert.alert('Error', 'No hay ID guardado', [{text: 'Ok'}]);
         return;
       }
-      const data = await fetch(`${url_base}/api/user/${id}`);
+      const data = await fetch(`https://eolam.vercel.app/api/user/${id}`);
       const res: InUser = await data.json();
 
       setWeeks(res.weeks);
       setIsLoading(false);
     };
     fetchData();
-  }, [url_base]);
+  }, []);
 
   const toggleExpand = (weekId: string) => {
     setExpandedWeek(expandedWeek === weekId ? null : weekId);

@@ -16,7 +16,6 @@ import {
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {UserContext} from '../context/UserContext';
-import {URL_BASE, GOOGLE_WEB_CLIENT} from '@env';
 
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import LinearGradient from 'react-native-linear-gradient';
@@ -25,11 +24,11 @@ const LoginScreen = () => {
   const navigation = useAppNavigation();
   const [loading, setLoading] = useState(false);
   const {setUserInfo} = useContext(UserContext);
-  let url_base: string = URL_BASE;
 
   // Configurar Google Sign-In
   useEffect(() => {
-    const clientId = GOOGLE_WEB_CLIENT;
+    const clientId =
+      '127777850629-f0vb31dn2qteb56apu3i0mfjno3ddql1.apps.googleusercontent.com';
 
     GoogleSignin.configure({
       webClientId: clientId,
@@ -47,10 +46,13 @@ const LoginScreen = () => {
         };
       }
 
-      const response = await fetch(`${url_base}/api/user/email/${user_email}`, {
-        method: 'GET',
-        headers: {'Content-Type': 'application/json'},
-      });
+      const response = await fetch(
+        `https://eolam.vercel.app/api/user/email/${user_email}`,
+        {
+          method: 'GET',
+          headers: {'Content-Type': 'application/json'},
+        },
+      );
 
       if (!response.ok) {
         if (response.status === 404) {

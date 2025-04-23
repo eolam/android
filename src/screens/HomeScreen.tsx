@@ -8,9 +8,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {InUser} from '../interfaces/user.interfaces';
-import {URL_BASE} from '@env';
-// import {UserContext} from '../context/UserContext';
-
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {ROUTES} from '../navigation/routes';
 import isActive from '../services/isActive';
@@ -18,7 +15,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen = ({}) => {
   const navigation = useAppNavigation();
-  let url_base: string = URL_BASE;
 
   const [, setUser] = useState<InUser | null>(null);
   const [isActiveRes, setIsActiveRes] = useState<boolean>();
@@ -27,7 +23,7 @@ const HomeScreen = ({}) => {
 
   useEffect(() => {
     const messageOfDay = async () => {
-      const res = await fetch(`${url_base}/api/dailyMessage`);
+      const res = await fetch('https://eolam.vercel.app/api/dailyMessage');
       const result = await res.json();
 
       setMsgOfDay(result.message as string);
@@ -61,10 +57,13 @@ const HomeScreen = ({}) => {
           ]);
           return;
         }
-        const res = await fetch(`${url_base}/api/user/email/${email}`, {
-          method: 'GET',
-          headers: {'Content-Type': 'application/json'},
-        });
+        const res = await fetch(
+          `https://eolam.vercel.app/api/user/email/${email}`,
+          {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json'},
+          },
+        );
         if (res.ok) {
           const userResponse: InUser = await res.json();
           if (userResponse && userResponse._id) {
@@ -85,7 +84,7 @@ const HomeScreen = ({}) => {
     };
 
     fetchUser();
-  }, [navigation, url_base]);
+  }, [navigation]);
 
   console.log(isActiveRes, 'isActive');
 
@@ -123,7 +122,8 @@ const HomeScreen = ({}) => {
 
           {!isActiveRes && (
             <Text style={styles.footer}>
-              Tu cuenta está inactiva, regulariza la situación con tu entrenador.
+              Tu cuenta está inactiva, regulariza la situación con tu
+              entrenador.
             </Text>
           )}
         </>
