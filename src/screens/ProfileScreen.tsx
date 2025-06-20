@@ -12,7 +12,10 @@ import {
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import EditPersonalInfoScreen from './EditProfile';
-import {InProfileData} from '../interfaces/user.interfaces';
+import {
+  InPaymentInfoProfileData,
+  InProfileData,
+} from '../interfaces/user.interfaces';
 
 const ProfileScreen = () => {
   const navigation = useAppNavigation();
@@ -27,6 +30,10 @@ const ProfileScreen = () => {
     day_of_payment: '',
     number_trainning_week: '',
     last_training_day: '',
+  });
+  const [cbuData, setCbuData] = useState<InPaymentInfoProfileData>({
+    cbu: '',
+    alias: '',
   });
   const [loading, setLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
@@ -53,20 +60,30 @@ const ProfileScreen = () => {
           headers: {'Content-Type': 'application/json'},
         },
       );
+      const responseCbu = await fetch(`https://eolam.vercel.app/api/payment`, {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'},
+      });
       const data = await response.json();
-      const cleanDate = data.birthday?.split('T') || '';
+      const dataCbu = await responseCbu.json();
+      //   const cleanDate = data.birthday ? new Date(data.birthday).toLocaleDateString('es-ES').replace(/\//g, '-') : '';
 
       setUserData({
         email: data.email || '',
         first_name: data.first_name || '',
         last_name: data.last_name || '',
-        birthday: cleanDate[0],
+        birthday: data.birthday || '',
         gym_name: data.gym_name || '',
         training_place: data.training_place || '',
         day_of_payment: data.day_of_payment || '',
         number_trainning_week: data.number_trainning_week || '',
         goals: data.goals || '',
         last_training_day: data.last_training_day || '',
+      });
+
+      setCbuData({
+        cbu: dataCbu.cbu || 'No se pudo cargar el CBU',
+        alias: dataCbu.alias || 'No se pudo cargar el Alias',
       });
     } catch (error) {
       Alert.alert('Error', 'Ocurrió un problema inesperado.', [
@@ -168,7 +185,14 @@ const ProfileScreen = () => {
               {`${userData?.first_name || ''} ${userData?.last_name || ''}`}
             </Text>
             <Text style={styles.cardText}>
-              Cumpleaños: {userData?.birthday || 'AAAA/MM/DD'}
+              Cumpleaños:{' '}
+              {userData?.birthday
+                ? new Date(userData.birthday).toLocaleDateString('es-ES', {
+					year: 'numeric',
+					month: '2-digit',
+					day: '2-digit'
+				  }).replace(/\//g, '-')
+                : 'AAAA/MM/DD'}
             </Text>
             <TouchableOpacity
               style={styles.editButton}
@@ -212,6 +236,24 @@ const ProfileScreen = () => {
                 style={styles.pencilIcon}
               />
             </TouchableOpacity>
+          </>
+        )}
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Información de pago</Text>
+        {loading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color="#3B82F6" />
+          </View>
+        ) : (
+          <>
+            <Text style={styles.cardText}>
+              CBU: {cbuData?.cbu || 'No especificado'}
+            </Text>
+            <Text style={styles.cardText}>
+              Alias: {cbuData?.alias || 'No especificado'}
+            </Text>
           </>
         )}
       </View>

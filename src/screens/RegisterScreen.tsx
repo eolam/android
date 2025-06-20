@@ -169,7 +169,12 @@ const RegisterScreen = () => {
     if (selectedDate) {
       const formattedDateISO = selectedDate.toISOString();
       console.log('fecha en API: ', formattedDateISO);
-      const formattedDateDisplay = selectedDate.toISOString().split('T')[0];
+    //   const formattedDateDisplay = selectedDate.toISOString().split('T')[0];
+	  const formattedDateDisplay = selectedDate.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).replace(/\//g, '-');
       handleInputChange('birthday', formattedDateISO);
       setDisplayDate(formattedDateDisplay);
     }

@@ -7,7 +7,9 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import {InProfileData} from '../interfaces/user.interfaces';
 
 const EditPersonalInfoScreen = ({
@@ -21,10 +23,33 @@ const EditPersonalInfoScreen = ({
 }) => {
   const [formData, setFormData] = useState({...userData});
   const [isModified, setIsModified] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [displayDate, setDisplayDate] = useState('');
 
   useEffect(() => {
     setFormData({...userData});
+    if (userData.birthday) {
+      setDisplayDate(userData.birthday.split('T')[0]);
+    }
   }, [userData]);
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      // Mantenemos toISOString() para el backend
+      const formattedDateISO = selectedDate.toISOString();
+      // Usamos toLocaleDateString() para mostrar correctamente la fecha seleccionada
+      const formattedDateDisplay = selectedDate.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).replace(/\//g, '-');
+      
+      setFormData({...formData, birthday: formattedDateISO});
+      setDisplayDate(formattedDateDisplay);
+      setIsModified(true);
+    }
+  };
 
   // Maneja los cambios en los inputs
   const handleInputChange = (field: string, value: string) => {
@@ -80,8 +105,9 @@ const EditPersonalInfoScreen = ({
         <Text style={styles.label}>Fecha de Nacimiento</Text>
         <TextInput
           style={styles.input}
-          value={formData.birthday}
-          onChangeText={text => handleInputChange('birthday', text)}
+          value={displayDate}
+          onFocus={() => setShowDatePicker(true)}
+          showSoftInputOnFocus={false}
         />
 
         <Text style={styles.title}>Información de Entrenamiento</Text>
@@ -126,14 +152,28 @@ const EditPersonalInfoScreen = ({
         La cantidad de veces que entrenas solo lo puede modificar tu entrenador,
         ponte en contacto con él por esa modificación.
       </Text>
+	  {showDatePicker && (
+        <DateTimePicker
+          value={new Date(formData.birthday || Date.now())}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+        />
+      )}
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {padding: 20, backgroundColor: '#0F172A'},
+  container: {padding: 20, backgroundColor: '#0F172A', minHeight: '100%'},
   cardContainer: {backgroundColor: '#1E293B', padding: 20, borderRadius: 10},
-  title: {fontSize: 18, marginBottom: 2, marginTop: 20, color: '#fff', fontWeight: 'thin'},
+  title: {
+    fontSize: 18,
+    marginBottom: 2,
+    marginTop: 20,
+    color: '#fff',
+    fontWeight: 'thin',
+  },
   label: {fontSize: 14, marginTop: 10, fontWeight: 'light', color: '#fff'},
   input: {
     borderWidth: 1,

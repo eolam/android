@@ -119,3 +119,8 @@ export interface InProfileData {
   training_place: string;
   number_trainning_week: string;
 }
+
+export interface InPaymentInfoProfileData {
+	cbu: string;
+	alias: string;
+  }
