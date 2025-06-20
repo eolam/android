@@ -15,7 +15,6 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {useAppNavigation} from '../hooks/useAppNavigation';
-import {URL_NGROK} from '@env';
 
 const RegisterScreen = () => {
   const navigation = useAppNavigation();
@@ -115,14 +114,16 @@ const RegisterScreen = () => {
     if (validateStepTwoInputs()) {
       setIsLoading(true);
       try {
-		console.log(URL_NGROK);
-        const response = await fetch(`${URL_NGROK}/api/mobile/user/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        const response = await fetch(
+          'https://eolam.vercel.app/api/mobile/user/',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
           },
-          body: JSON.stringify(formData),
-        });
+        );
 
         if (!response.ok) {
           if (response.status === 400) {

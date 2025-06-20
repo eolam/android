@@ -1,46 +1,49 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import {InUser} from '../interfaces/user.interfaces';
-import {URL_NGROK} from '@env';
-// import {UserContext} from '../context/UserContext';
-
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {ROUTES} from '../navigation/routes';
-// import {RootStackParamList} from '../navigation/types';
 import isActive from '../services/isActive';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen = ({}) => {
-  //   const {userInfo} = useContext(UserContext);
-
   const navigation = useAppNavigation();
-
-  //   const handleNavigate = (route: keyof RootStackParamList) => {
-  //     navigation.navigate(route);
-  //   };
 
   const [, setUser] = useState<InUser | null>(null);
   const [isActiveRes, setIsActiveRes] = useState<boolean>();
   const [msgOfDay, setMsgOfDay] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    const messageOfDay = async () => {
+      const res = await fetch('https://eolam.vercel.app/api/dailyMessage');
+      const result = await res.json();
+
+      setMsgOfDay(result.message as string);
+    };
+    // Cerrar sesión
+    const Logout = async () => {
+      await AsyncStorage.setItem(
+        'userInfo',
+        JSON.stringify({
+          email: null,
+          displayName: null,
+          photoURL: null,
+          id: null,
+        }),
+      );
+      navigation.navigate('Login');
+    };
     const fetchUser = async () => {
-      // Cerrar sesión
-      const Logout = async () => {
-        await AsyncStorage.setItem(
-          'userInfo',
-          JSON.stringify({
-            email: null,
-            displayName: null,
-            photoURL: null,
-            id: null,
-          }),
-        );
-        navigation.navigate('Login');
-      };
       try {
         const userString = await AsyncStorage.getItem('userInfo');
-        console.log('el userString es: ', userString);
         if (!userString) {
           Alert.alert('Error', 'No hay usuario guardado', [
             {text: 'Ok', onPress: () => Logout()},
@@ -48,69 +51,82 @@ const HomeScreen = ({}) => {
           return;
         }
         const {email} = JSON.parse(userString);
-        console.log('el email es: ', email);
         if (!email) {
           Alert.alert('Error', 'No hay email guardado', [
             {text: 'Ok', onPress: () => Logout()},
           ]);
           return;
         }
-        const res = await fetch(`${URL_NGROK}/api/user/email/${email}`, {
-          method: 'GET',
-          headers: {'Content-Type': 'application/json'},
-        });
+        const res = await fetch(
+          `https://eolam.vercel.app/api/user/email/${email}`,
+          {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json'},
+          },
+        );
         if (res.ok) {
           const userResponse: InUser = await res.json();
           if (userResponse && userResponse._id) {
             setUser(userResponse);
+            console.log(userResponse, 'userResponse');
+
             setIsActiveRes(await isActive(userResponse._id));
+            await messageOfDay();
           }
         }
       } catch (error) {
         Alert.alert('Error', 'Se produjo un error de login', [
           {text: 'Ok', onPress: () => Logout()},
         ]);
+      } finally {
+        setIsLoading(false);
       }
-    };
-    const messageOfDay = async () => {
-      const res = await fetch(`${URL_NGROK}/api/dailyMessage`);
-      const result = await res.json();
-
-      setMsgOfDay(result.message as string);
     };
 
     fetchUser();
-    messageOfDay();
-  }, []);
+  }, [navigation]);
+
+  console.log(isActiveRes, 'isActive');
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>{msgOfDay}</Text>
+      {isLoading ? (
+        <ActivityIndicator
+          style={styles.container}
+          color="#D81B60"
+          size={'large'}
+        />
+      ) : (
+        <>
+          <Text style={styles.header}>{msgOfDay}</Text>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate(ROUTES.PROFILE)}>
-        <Text style={styles.buttonText}>Mi perfil</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate(ROUTES.PROFILE)}>
+            <Text style={styles.buttonText}>Mi perfil</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.button, !isActiveRes ? styles.buttonDisabled : null]}
-        disabled={!isActiveRes}
-        onPress={() => navigation.navigate(ROUTES.TRAINING_HISTORY)}>
-        <Text style={styles.buttonText}>Historial de entrenamientos</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, !isActiveRes ? styles.buttonDisabled : null]}
+            disabled={!isActiveRes}
+            onPress={() => navigation.navigate(ROUTES.TRAINING_HISTORY)}>
+            <Text style={styles.buttonText}>Historial de entrenamientos</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.button, !isActiveRes ? styles.buttonDisabled : null]}
-        disabled={!isActiveRes}
-        onPress={() => navigation.navigate(ROUTES.NEW_TRAININGS)}>
-        <Text style={styles.buttonText}>Nuevos entrenamientos</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, !isActiveRes ? styles.buttonDisabled : null]}
+            disabled={!isActiveRes}
+            onPress={() => navigation.navigate(ROUTES.NEW_TRAININGS)}>
+            <Text style={styles.buttonText}>Nuevos entrenamientos</Text>
+          </TouchableOpacity>
 
-      {!isActiveRes && (
-        <Text style={styles.footer}>
-          Tu cuenta está inactiva, regulariza la situación con tu entrenador.
-        </Text>
+          {!isActiveRes && (
+            <Text style={styles.footer}>
+              Tu cuenta está inactiva, regulariza la situación con tu
+              entrenador.
+            </Text>
+          )}
+        </>
       )}
     </View>
   );

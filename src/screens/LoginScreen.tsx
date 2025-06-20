@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {
   View,
   Text,
@@ -14,31 +14,24 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
-// import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import {UserContext} from '../context/UserContext';
-import {URL_NGROK} from '@env';
-// import {ROUTES} from '../navigation/routes';
-// import {RootStackParamList} from '../navigation/types';
+import {UserContext} from '../context/UserContext';
+
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import LinearGradient from 'react-native-linear-gradient';
 
 const LoginScreen = () => {
   const navigation = useAppNavigation();
-
-  //   const handleNavigate = (route: keyof RootStackParamList) => {
-  //     navigation.navigate(route);
-  //   };
   const [loading, setLoading] = useState(false);
-  //   const [email, setEmail] = useState('');
-  //   const [password, setPassword] = useState('');
-  //   const {userInfo, setUserInfo} = useContext(UserContext);
+  const {setUserInfo} = useContext(UserContext);
 
   // Configurar Google Sign-In
   useEffect(() => {
+    const clientId =
+      '127777850629-f0vb31dn2qteb56apu3i0mfjno3ddql1.apps.googleusercontent.com';
+
     GoogleSignin.configure({
-      webClientId:
-        '127777850629-f0vb31dn2qteb56apu3i0mfjno3ddql1.apps.googleusercontent.com',
+      webClientId: clientId,
     });
   }, []);
 
@@ -52,9 +45,9 @@ const LoginScreen = () => {
           id: null,
         };
       }
-      console.log('le estoy pegando!', URL_NGROK);
+
       const response = await fetch(
-        `${URL_NGROK}/api/user/email/${user_email}`,
+        `https://eolam.vercel.app/api/user/email/${user_email}`,
         {
           method: 'GET',
           headers: {'Content-Type': 'application/json'},
@@ -119,52 +112,79 @@ const LoginScreen = () => {
     try {
       setLoading(true);
 
-      await GoogleSignin.hasPlayServices();
-      await GoogleSignin.signOut();
+      // Verifica los servicios de Google Play
+      await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
 
-      const googleUser = await GoogleSignin.signIn();
-      if (googleUser.data?.idToken) {
-        const googleCredential = auth.GoogleAuthProvider.credential(
-          googleUser.data.idToken,
-        );
-        const userCredential = await auth().signInWithCredential(
-          googleCredential,
-        );
+      // Intenta cerrar sesión primero
+      try {
+        await GoogleSignin.signOut();
+      } catch (error) {
+        console.log('Error al cerrar sesión:', error);
+      }
 
-        const user = userCredential.user;
+      // Intenta iniciar sesión
+      const userInfo = await GoogleSignin.signIn();
+      console.log('Google Sign-In successful:', userInfo);
 
-        const emailExists = await checkEmailInBackend(user.email);
-        if (!emailExists.error) {
-          await AsyncStorage.setItem(
-            'userInfo',
-            JSON.stringify({
-              email: user.email,
-              displayName: user.displayName,
-              photoURL: user.photoURL,
-              id: emailExists.id,
-            }),
-          );
-          navigation.navigate('Home');
-          // handleNavigate(ROUTES.HOME);
-        } else {
-          await AsyncStorage.setItem(
-            'userInfo',
-            JSON.stringify({
-              email: user.email,
-              displayName: user.displayName,
-              photoURL: user.photoURL,
-              id: null,
-            }),
-          );
-          navigation.navigate('Register');
-          // handleNavigate(ROUTES.REGISTER);
-        }
+      if (!userInfo || !userInfo.data || !userInfo.data.idToken) {
+        throw new Error('No ID token present!');
+      }
+
+      // Crea credencial para Firebase
+      const googleCredential = auth.GoogleAuthProvider.credential(
+        userInfo.data.idToken,
+      );
+      const userCredential = await auth().signInWithCredential(
+        googleCredential,
+      );
+
+      const user = userCredential.user;
+
+      const emailExists = await checkEmailInBackend(user.email);
+      if (!emailExists.error) {
+        const userInfoData = {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          id: emailExists.id,
+        };
+
+        await AsyncStorage.setItem('userInfo', JSON.stringify(userInfoData));
+        setUserInfo(userInfoData);
+
+        navigation.navigate('Home');
+      } else {
+        const userInfoData = {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          id: null,
+        };
+
+        await AsyncStorage.setItem('userInfo', JSON.stringify(userInfoData));
+        setUserInfo(userInfoData);
+
+        navigation.navigate('Register');
       }
     } catch (error: any) {
+      console.error('Google Sign-In error:', error);
       if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
         Alert.alert('Login cancelado', 'Has cancelado el inicio de sesión.');
+      } else if (error?.code === statusCodes.IN_PROGRESS) {
+        Alert.alert(
+          'En proceso',
+          'La operación de inicio de sesión está en curso.',
+        );
+      } else if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert(
+          'Error',
+          'Los servicios de Google Play no están disponibles.',
+        );
       } else {
-        Alert.alert('Error', 'Hubo un problema al iniciar sesión con Google.');
+        Alert.alert(
+          'Error',
+          'Hubo un problema al iniciar sesión con Google: ' + error.message,
+        );
       }
     } finally {
       setLoading(false);

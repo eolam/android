@@ -1,16 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, FlatList, StyleSheet} from 'react-native';
+import {View, Text, FlatList, StyleSheet, Alert} from 'react-native';
 import {InExercise, InDay} from '../interfaces/user.interfaces';
-import {URL_NGROK} from '@env';
-import {useContext} from 'react';
-import {UserContext} from '../context/UserContext';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import {RootStackParamList} from '../navigation/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type HistoryExerciseRouteProp = RouteProp<RootStackParamList, 'ExerciseList'>;
 
 const ExerciseList = () => {
-  const {userInfo} = useContext(UserContext);
   const [day, setDay] = useState<InDay | null>(null);
 
   const route = useRoute<HistoryExerciseRouteProp>();
@@ -18,15 +15,25 @@ const ExerciseList = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      const userString = await AsyncStorage.getItem('userInfo');
+      if (!userString) {
+        Alert.alert('Error', 'No hay usuario guardado', [{text: 'Ok'}]);
+        return;
+      }
+      const {id} = JSON.parse(userString);
+      if (!id) {
+        Alert.alert('Error', 'No hay ID guardado', [{text: 'Ok'}]);
+        return;
+      }
       const data = await fetch(
-        `${URL_NGROK}/api/user/${userInfo.id}/day/${dayId}`,
+        `https://eolam.vercel.app/api/user/${id}/day/${dayId}`,
       );
       const dayData: InDay = await data.json();
 
       setDay(dayData);
     };
     fetchData();
-  }, [dayId, userInfo.id]);
+  }, [dayId]);
 
   const renderItem = ({item}: {item: InExercise}) => (
     <View style={styles.row}>

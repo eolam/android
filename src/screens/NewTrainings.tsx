@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -6,40 +6,38 @@ import {
   StyleSheet,
   FlatList,
   ListRenderItemInfo,
+  Alert,
 } from 'react-native';
 import {InDay, InExercise, InUser, InWeek} from '../interfaces/user.interfaces';
-import {URL_NGROK} from '@env';
-import {UserContext} from '../context/UserContext';
 import {useAppNavigation} from '../hooks/useAppNavigation';
 import {RootStackParamList} from '../navigation/types';
 import {ROUTES} from '../navigation/routes';
-
-// type Report = {
-//   title: string;
-//   description?: string;
-//   id: number;
-//   isUnlocked: boolean;
-// };
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NewTrainings = () => {
-  const {userInfo} = useContext(UserContext);
-
   const navigation = useAppNavigation();
 
   const handleNavigate = (route: keyof RootStackParamList, params?: any) => {
     navigation.navigate(route, params);
   };
 
-  const {id} = userInfo;
+  //   const {id} = userInfo;
   const [week, setWeeks] = useState<InWeek[]>();
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('entro');
-
     const fetchData = async () => {
-      console.log('week', week);
-      const data = await fetch(`${URL_NGROK}/api/user/${id}`);
+      const userString = await AsyncStorage.getItem('userInfo');
+      if (!userString) {
+        Alert.alert('Error', 'No hay usuario guardado', [{text: 'Ok'}]);
+        return;
+      }
+      const {id} = JSON.parse(userString);
+      if (!id) {
+        Alert.alert('Error', 'No hay ID guardado', [{text: 'Ok'}]);
+        return;
+      }
+      const data = await fetch(`https://eolam.vercel.app/api/user/${id}`);
       const res: InUser = await data.json();
 
       const transform: InWeek[] = res.weeks;
@@ -47,7 +45,7 @@ const NewTrainings = () => {
       setWeeks(transform);
     };
     fetchData();
-  }, [id]);
+  }, []);
 
   const days: InDay[] | undefined = week?.slice(-1)[0]?.days;
 
@@ -76,6 +74,7 @@ const NewTrainings = () => {
               onPress={() =>
                 handleNavigate(ROUTES.NEW_EXERCISE, {
                   exerciseId: exercise._id,
+                  week_number: lastWeek,
                 })
               }>
               <Text style={styles.reportText}>Ejercicio {index + 1}</Text>
@@ -90,15 +89,19 @@ const NewTrainings = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.headerText}>Semana {lastWeek}</Text>
-      <View style={styles.reportContainer}>
-        <FlatList
-          data={days}
-          renderItem={({item, index}: ListRenderItemInfo<InDay>) =>
-            renderWeekItem({item, index: index})
-          }
-          keyExtractor={item => item._id}
-        />
-      </View>
+      {days && days.length === 0 ? (
+        <Text style={styles.title}>Aun no hay ejercicios disponibles</Text>
+      ) : (
+        <View style={styles.reportContainer}>
+          <FlatList
+            data={days}
+            renderItem={({item, index}: ListRenderItemInfo<InDay>) =>
+              renderWeekItem({item, index: index})
+            }
+            keyExtractor={item => item._id}
+          />
+        </View>
+      )}
     </View>
   );
 };
@@ -112,6 +115,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 24,
+    fontWeight: 'bold',
     color: '#fff',
     marginBottom: 20,
   },
@@ -165,6 +169,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 5,
     backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: 'normal',
+    color: '#fff',
+    marginBottom: 20,
+    marginTop: 50,
   },
 });
 
