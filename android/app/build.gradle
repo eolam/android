@@ -83,8 +83,8 @@ android {
         applicationId "com.eolamrnandroid"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 17
-        versionName "1.0.22"
+        versionCode 23
+        versionName "1.0.23"
     }
     signingConfigs {
         debug {
@@ -94,10 +94,12 @@ android {
             keyPassword 'android'
         }
         release {
+            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
             storeFile file(MYAPP_RELEASE_STORE_FILE)
             storePassword MYAPP_RELEASE_STORE_PASSWORD
             keyAlias MYAPP_RELEASE_KEY_ALIAS
             keyPassword MYAPP_RELEASE_KEY_PASSWORD
+            }
         }
     }
     buildTypes {
